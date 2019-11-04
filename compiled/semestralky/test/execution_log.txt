@@ -1,0 +1,12 @@
+Exit code: 0x0
+
+Execution time: 0:0.089151 [min:sec]
+Kernel time: 0:0.000000 [min:sec]
+User time: 0:0.000000 [min:sec]
+Time limit exceeded: no
+
+Peak memory used: 3516 kB
+Page fault count: 1002
+
+Excessive files count: 17
+Excessive files size: 74 kB
