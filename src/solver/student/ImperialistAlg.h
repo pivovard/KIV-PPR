@@ -27,7 +27,8 @@ public:
 	void init();
 	void evolve();
 
-	//void move_colony(Country& imp, Country& colony);
+	void move_all_colonies(Imperialist& imp);
+	void move_colony(Country& imp, Country& colony);
 	//void switch _colony();
 	//void migrate_colony();
 

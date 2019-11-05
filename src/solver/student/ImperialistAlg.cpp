@@ -22,8 +22,45 @@ void ImperialistAlg::init()
 void ImperialistAlg::evolve()
 {
 	for (int i = 0; i < setup.max_generations; i++) {
-
+		//move colonies
+		for (int i = 0; i < imp.size(); i++) {
+			move_all_colonies(imp[i]);
+		}
 	}
+}
+
+void ImperialistAlg::move_all_colonies(Imperialist& imp)
+{
+	for (int i = 0; i < imp.colonies.size(); i++) {
+		move_colony(*imp.imp, *imp.colonies[i]);
+
+		//calc new cost
+		imp.colonies[i]->fitness = calc_fitness(imp.colonies[i]->vec);
+
+		//if colonies cost function < than imperialists, switch
+		if (imp.colonies[i]->fitness < imp.imp->fitness) {
+			auto* tmp = imp.colonies[i];
+			imp.colonies[i] = imp.imp;
+			imp.imp = tmp;
+		}
+	}
+}
+
+void ImperialistAlg::move_colony(Country& imp, Country& colony)
+{
+	//x - U(0,beta*d)
+	double d = calc_distance(imp.vec, colony.vec);
+	std::vector<double> x = gen_vector(setup.problem_size, 0, 1);
+	std::vector<double> U = gen_vector(setup.problem_size, 0, beta*d); //U(0,beta*d)
+	std::cout << "x" << x[0] << " " << x[1] << std::endl;
+	std::transform(x.begin(), x.end(), U.begin(), x.begin(), std::minus<double>());
+	//x[0] -= U[0];
+	//x[1] -= U[0];
+	std::cout << "x-U" << x[0] << " " << x[1] << std::endl;
+	std::transform(colony.vec.begin(), colony.vec.end(), x.begin(), colony.vec.begin(), std::plus<double>());
+
+	//x - U(-gama,gama)
+
 }
 
 void ImperialistAlg::write_solution()
