@@ -29,16 +29,17 @@ public:
 
 	void move_all_colonies(Imperialist& imp);
 	void move_colony(Country& imp, Country& colony);
-	//void switch _colony();
-	//void migrate_colony();
+	void migrate_colonies();
 
 	void write_solution();
 
+	static double gen_double(double lower_bound, double upper_bound);
 	static std::vector<double> gen_vector(size_t size, double lower_bound, double upper_bound);
 	void gen_population();
 
 	double calc_fitness(const std::vector<double>& vec);
 	void calc_fitness_all();
+	double calc_fitness_imp(const Imperialist& imp);
 
 	double calc_distance(const std::vector<double>& vec1, const std::vector<double>& vec2);
 

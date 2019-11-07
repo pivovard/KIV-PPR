@@ -21,11 +21,15 @@ void ImperialistAlg::init()
 
 void ImperialistAlg::evolve()
 {
-	for (int i = 0; i < setup.max_generations; i++) {
+	//for (int i = 0; i < setup.max_generations; i++) {
+	for (int i = 0; i < 10; i++) {
 		//move colonies
-		for (int i = 0; i < imp.size(); i++) {
-			move_all_colonies(imp[i]);
+		for (auto& i : imp) {
+			move_all_colonies(i);
 		}
+		//calc_fitness_all();
+
+		migrate_colonies();
 	}
 }
 
@@ -41,26 +45,77 @@ void ImperialistAlg::move_all_colonies(Imperialist& imp)
 		if (imp.colonies[i]->fitness < imp.imp->fitness) {
 			auto* tmp = imp.colonies[i];
 			imp.colonies[i] = imp.imp;
+			imp.colonies[i]->imperialist = false;
 			imp.imp = tmp;
+			imp.imp->imperialist = true;
 		}
 	}
 }
 
 void ImperialistAlg::move_colony(Country& imp, Country& colony)
 {
-	//x - U(0,beta*d)
-	double d = calc_distance(imp.vec, colony.vec);
-	std::vector<double> x = gen_vector(setup.problem_size, 0, 1);
-	std::vector<double> U = gen_vector(setup.problem_size, 0, beta*d); //U(0,beta*d)
-	std::cout << "x" << x[0] << " " << x[1] << std::endl;
-	std::transform(x.begin(), x.end(), U.begin(), x.begin(), std::minus<double>());
-	//x[0] -= U[0];
-	//x[1] -= U[0];
-	std::cout << "x-U" << x[0] << " " << x[1] << std::endl;
-	std::transform(colony.vec.begin(), colony.vec.end(), x.begin(), colony.vec.begin(), std::plus<double>());
+	//x - U(0,beta*d) - nefunkcni, pravdepodobne smerovy vector je spatne
+	//double d = calc_distance(imp.vec, colony.vec);
+	//double U = gen_double(0, beta * d); //U(0,beta*d)
+	std::vector<double> U = gen_vector(setup.problem_size, 0, 1); //U(0,1)
+
+	//V=imp-col
+	std::vector<double> V(setup.problem_size);
+	std::transform(imp.vec.begin(), imp.vec.end(), colony.vec.begin(), V.begin(), std::minus<double>());
+
+	//V=V*U
+	//for (auto& v : V) v *= U;
+	std::transform(V.begin(), V.end(), U.begin(), V.begin(), std::multiplies<double>());
+
+	//Xnew=Xold+V*U
+	std::transform(colony.vec.begin(), colony.vec.end(), V.begin(), colony.vec.begin(), std::plus<double>());
 
 	//x - U(-gama,gama)
+	//double O = gen_double(-gama, gama); //U(-gama, gama)
 
+	//count new fitness
+	colony.fitness = calc_fitness(colony.vec);
+}
+
+void ImperialistAlg::migrate_colonies()
+{
+	double max_tc = DBL_MIN;
+	double sum_tc = 0.0;
+
+	//count total fitness
+	for (auto& i : imp) {
+		double tc = calc_fitness_imp(i);
+		i.total_fitness = tc;
+		sum_tc += tc;
+		if (tc > max_tc) max_tc = tc;
+	}
+
+	//count probability vector p=|NTC/sum NTC |
+	std::vector<double> P;
+
+	for (auto& i : imp) {
+		std::cout << i.total_fitness << std::endl;
+		double p = std::abs((i.total_fitness - max_tc)/sum_tc);
+		P.push_back(p);
+	}
+
+	std::vector<double> R;
+	R = gen_vector(P.size(), 0, 1);
+
+	//D=P-R
+	std::vector<double> D(P.size());
+	std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
+
+	std::cout << P[0] << " - " << R[0]<< " = " << D[0] << std::endl;
+	std::cout << P[1] << " - " << R[1] << " = " << D[1] << std::endl;
+
+
+	//imperialist losts power
+	for (auto& i : imp) {
+		if (i.colonies.size() == 0) {
+
+		}
+	}
 }
 
 void ImperialistAlg::write_solution()
@@ -75,6 +130,12 @@ void ImperialistAlg::write_solution()
 	std::sort(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
 
 	std::copy(pop.front().vec.begin(), pop.front().vec.end(), setup.solution);
+}
+
+double ImperialistAlg::gen_double(double lower_bound, double upper_bound)
+{
+	std::uniform_real_distribution<> distr(lower_bound, upper_bound);
+	return distr(eng);
 }
 
 std::vector<double> ImperialistAlg::gen_vector(size_t size, double lower_bound, double upper_bound)
@@ -162,6 +223,16 @@ void ImperialistAlg::calc_fitness_all()
 	}
 }
 
+double ImperialistAlg::calc_fitness_imp(const Imperialist& imp)
+{
+	double sum = imp.imp->fitness;
+	for (int i = 0; i < imp.colonies.size(); i++) {
+		sum += imp.colonies[i]->fitness;
+	}
+
+	return sum;
+}
+
 double ImperialistAlg::calc_distance(const std::vector<double>& vec1, const std::vector<double>& vec2)
 {
 	double sum = 0.0;
@@ -180,7 +251,7 @@ void ImperialistAlg::print_population()
 		else std::cout << "Col: ";
 		std::cout << country.fitness << " - ";
 		print_vector(country.vec);
-		std::cout << std::endl;
+		//std::cout << std::endl;
 	}
 }
 
@@ -189,4 +260,5 @@ void ImperialistAlg::print_vector(const std::vector<double>& vec)
 	for (const auto& v : vec) {
 		std::cout << v << " ";
 	}
+	std::cout << std::endl;
 }

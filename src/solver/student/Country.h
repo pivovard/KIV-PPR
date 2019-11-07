@@ -12,4 +12,5 @@ struct Imperialist
 {
 	Country* imp;
 	std::vector<Country*> colonies;
+	double total_fitness = std::numeric_limits<double>::quiet_NaN();
 };
