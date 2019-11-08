@@ -15,6 +15,9 @@ private:
 	
 	const double beta = 2.0;
 	const double gama = std::_Pi / 4.0;
+	const double xi = 0.1;
+	const size_t start_imp = 3;
+	const size_t max_colonies = 12;
 
 public:
 	std::vector<Country> pop;

@@ -2,7 +2,7 @@
 #include <iostream>
 
 HRESULT solve_opencl(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
-
+	system("pause");
 
 	return S_OK;
 }
