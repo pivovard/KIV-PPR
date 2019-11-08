@@ -38,6 +38,7 @@
 
 
 #include "student\descriptor.h"
+#include "solver_serial.h"
 #include "solver_smp.h"
 #include "solver_opencl.h"
 
@@ -45,7 +46,8 @@ extern "C" HRESULT IfaceCalling do_solve_generic(const GUID *solver_id, solver::
 	HRESULT rc = E_UNEXPECTED;
 
 	try {
-		if (*solver_id == pprsolver::pprsolver_id_smp) rc = solve_smp(*setup, *progress);
+		if (*solver_id == pprsolver::pprsolver_id_serial) rc = solve_serial(*setup, *progress);
+		else if (*solver_id == pprsolver::pprsolver_id_smp) rc = solve_smp(*setup, *progress);
 		else if (*solver_id == pprsolver::pprsolver_id_opencl) rc = solve_opencl(*setup, *progress);
 			else rc = E_NOTIMPL;
 

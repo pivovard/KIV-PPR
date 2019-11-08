@@ -44,6 +44,8 @@
 
 namespace pprsolver {
 	//pro oba solvery si vygenerujte nove GUID
+	constexpr GUID pprsolver_id_serial = { 0xb006d761, 0xb5b, 0x4905, { 0xba, 0xa, 0xa7, 0xbb, 0x14, 0xfa, 0xa1, 0x68 } };
+	constexpr wchar_t pprsolver_desc_serial[] = L"David Pivovar - Imperialist Competitive Algorithm - Serial";
 	constexpr GUID pprsolver_id_smp = { 0x2c6f2961, 0xedbf, 0x4984, { 0x83, 0x53, 0xe6, 0xcb, 0xf5, 0x55, 0x9a, 0xbd } };
 	constexpr wchar_t pprsolver_desc_smp[] = L"David Pivovar - Imperialist Competitive Algorithm - SMP";
 	constexpr GUID pprsolver_id_opencl = { 0xcf5971cd, 0xd279, 0x42f6, { 0xad, 0xd4, 0x7a, 0x0, 0xab, 0xa0, 0x20, 0xef } };	

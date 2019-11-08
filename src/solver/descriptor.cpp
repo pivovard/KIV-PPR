@@ -42,6 +42,15 @@
 #include <array>
 
 namespace pprsolver {
+	const glucose::TSolver_Descriptor ppr_solver_serial_desc = {
+		pprsolver_id_serial,
+		pprsolver_desc_serial,
+		false,
+		0,
+		nullptr
+	};
+
+
 	const glucose::TSolver_Descriptor ppr_solver_smp_desc = {
 		pprsolver_id_smp,
 		pprsolver_desc_smp,
@@ -60,7 +69,7 @@ namespace pprsolver {
 }
 
 
-const std::array<glucose::TSolver_Descriptor, 2> solver_descriptions = { pprsolver::ppr_solver_smp_desc, pprsolver::ppr_solver_opencl_desc };
+const std::array<glucose::TSolver_Descriptor, 3> solver_descriptions = { pprsolver::ppr_solver_serial_desc, pprsolver::ppr_solver_smp_desc, pprsolver::ppr_solver_opencl_desc };
 
 
 HRESULT IfaceCalling do_get_solver_descriptors(glucose::TSolver_Descriptor **begin, glucose::TSolver_Descriptor **end) {
