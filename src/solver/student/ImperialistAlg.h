@@ -16,6 +16,7 @@ private:
 	const double beta = 2.0;
 	const double gama = std::_Pi / 4.0;
 	const double xi = 0.1;
+	const double eps = 0.01;
 	const size_t start_imp = 3;
 	const size_t max_colonies = 12;
 
@@ -34,6 +35,7 @@ public:
 	void move_colony(Country& imp, Country& colony);
 	void migrate_colonies();
 
+	double get_min();
 	void write_solution();
 
 	static double gen_double(double lower_bound, double upper_bound);

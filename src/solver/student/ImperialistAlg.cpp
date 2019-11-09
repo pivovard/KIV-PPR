@@ -21,16 +21,13 @@ void ImperialistAlg::init()
 
 void ImperialistAlg::evolve()
 {
-	for (int i = 0; i < setup.max_generations; i++) {
-	//for (int i = 0; i < 1000; i++) {
-		//move colonies
-		for (auto& i : imp) {
-			move_all_colonies(i);
-		}
-		//calc_fitness_all();
-
-		migrate_colonies();
+	//move colonies
+	for (auto& i : imp) {
+		move_all_colonies(i);
 	}
+
+	//migrate colonies
+	migrate_colonies();
 }
 
 void ImperialistAlg::move_all_colonies(Imperialist& imp)
@@ -153,6 +150,11 @@ void ImperialistAlg::migrate_colonies()
 			}
 		}
 	}
+}
+
+double ImperialistAlg::get_min()
+{
+	return 0.0;
 }
 
 void ImperialistAlg::write_solution()
@@ -295,6 +297,8 @@ void ImperialistAlg::print_population()
 				std::cout << std::endl;
 		}
 	}
+
+	std::cout << std::endl;
 
 	//for (const auto& country : pop) {
 	//	if(country.imperialist) std::cout << "Imp: ";

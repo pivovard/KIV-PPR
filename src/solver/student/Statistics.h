@@ -1,5 +1,29 @@
 #pragma once
-class Statistics
+
+#include <iostream>
+#include <vector>
+#include <time.h>
+#include "../../common/iface/SolverIface.h"
+
+
+struct Stat
 {
+	double time = 0.0;
+	int generations = 0;
+	size_t population_size;
+	size_t problem_size;
+	short type;
+};
+
+static class Statistics
+{
+private:
+	static std::vector<Stat> stats;
+	static time_t start_time;
+
+public:
+	static void begin(solver::TSolver_Setup& setup, short type);
+	static void end(int gen);
+	static void print_stat();
 };
 
