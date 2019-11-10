@@ -10,6 +10,7 @@ struct Stat
 {
 	double time = 0.0;
 	int generations = 0;
+	std::vector<double> fitness;
 	size_t population_size;
 	size_t problem_size;
 	short type;
@@ -23,6 +24,7 @@ private:
 
 public:
 	static void begin(solver::TSolver_Setup& setup, short type);
+	static void iteration(double cost);
 	static void end(int gen);
 	static void print_stat();
 };

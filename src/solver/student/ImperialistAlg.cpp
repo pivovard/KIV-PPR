@@ -32,7 +32,7 @@ void ImperialistAlg::evolve()
 
 void ImperialistAlg::move_all_colonies(Imperialist& imp)
 {
-	for (int i = 0; i < imp.colonies.size(); i++) {
+	for (int i = 0; i < imp.colonies.size(); ++i) {
 		move_colony(*imp.imp, *imp.colonies[i]);
 
 		//calc new cost - already at move_colony
@@ -99,10 +99,10 @@ void ImperialistAlg::migrate_colonies()
 	//{colony, imp in, imp out}
 	//{  j,      max,     i   }
 	std::vector<std::vector<_int64>> migration;
-	for (int i = 0; i < imp.size(); i++) {
+	for (int i = 0; i < imp.size(); ++i) {
 		//for (auto* col : imp[i].colonies) {
-		//for (int j = 0; j < imp[i].colonies.size(); j++) {
-		for (int j = imp[i].colonies.size() -1; j > -1; j--) {
+		//for (int j = 0; j < imp[i].colonies.size(); ++j) {
+		for (int j = imp[i].colonies.size() -1; j > -1; --j) {
 			std::vector<double> R;
 			R = gen_vector(P.size(), 0, 1);
 
@@ -110,7 +110,7 @@ void ImperialistAlg::migrate_colonies()
 			std::vector<double> D(P.size());
 			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
 
-			auto it = std::min_element(D.begin(), D.end());
+			auto it = std::max_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);
 
 			//migration
@@ -129,7 +129,7 @@ void ImperialistAlg::migrate_colonies()
 	}
 
 	//imperialist losts power
-	for (int i = 0; i < imp.size(); i++) {
+	for (int i = 0; i < imp.size(); ++i) {
 		//if no colonies
 		if (imp[i].colonies.size() == 0) {
 			std::vector<double> R;
@@ -139,8 +139,12 @@ void ImperialistAlg::migrate_colonies()
 			std::vector<double> D(P.size());
 			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
 
-			auto it = std::min_element(D.begin(), D.end());
+			print_vector(D);
+
+			auto it = std::max_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);
+
+			std::cout << std::endl << max << std::endl;
 
 			//extinction
 			if (max != i) {
@@ -154,21 +158,16 @@ void ImperialistAlg::migrate_colonies()
 
 double ImperialistAlg::get_min()
 {
-	return 0.0;
+	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	return it._Ptr->fitness;
 }
 
 void ImperialistAlg::write_solution()
 {
-	/*
-	std::vector<double> fitness = calc_fitness();
-	auto it = std::min_element(fitness.begin(), fitness.end());
-	_int64 index = std::distance(fitness.begin(), it);
-	*/
-
-	calc_fitness_all();
-	std::sort(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
-
-	std::copy(pop.front().vec.begin(), pop.front().vec.end(), setup.solution);
+	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	std::copy(it._Ptr->vec.begin(), it._Ptr->vec.end(), setup.solution);
 }
 
 double ImperialistAlg::gen_double(double lower_bound, double upper_bound)
@@ -183,7 +182,7 @@ std::vector<double> ImperialistAlg::gen_vector(size_t size, double lower_bound, 
 
 	std::vector<double> vec;
 
-	for (int j = 0; j < size; j++) {
+	for (int j = 0; j < size; ++j) {
 		double val = distr(eng);
 		vec.push_back(val);
 	}
@@ -194,7 +193,7 @@ std::vector<double> ImperialistAlg::gen_vector(size_t size, double lower_bound, 
 void ImperialistAlg::gen_population()
 {
 	//generate start population
-	for (int i = 0; i < setup.population_size; i++) {
+	for (int i = 0; i < setup.population_size; ++i) {
 		Country c;
 		c.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
 		pop.push_back(c);
@@ -213,7 +212,7 @@ void ImperialistAlg::gen_population()
 	double sum_C = 0; //sum of normalized fitnesses of imperialists
 	double max_c = pop[setup.population_size - 1].fitness; //max of all countries OR maybe max of imperialists?
 
-	for (int i = 0; i < n_imp; i++) {
+	for (int i = 0; i < n_imp; ++i) {
 		Imperialist tmp;
 		tmp.imp = &pop[i];
 		imp.push_back(tmp);
@@ -223,7 +222,7 @@ void ImperialistAlg::gen_population()
 	
 	std::vector<double> prob; //probability to get colony
 
-	for (int i = 0; i < n_imp; i++) {
+	for (int i = 0; i < n_imp; ++i) {
 		double p_n = std::abs((pop[i].fitness - max_c) / sum_C); //p=|norm.fitness/sum Cn|
 		prob.push_back(p_n);
 		std::cout << "Imp " << i+1 << " colonies " << std::round(p_n * (setup.population_size - n_imp)) << std::endl;
@@ -233,11 +232,11 @@ void ImperialistAlg::gen_population()
 	//tbb::paralel_for ??
 	std::uniform_real_distribution<> dist; //distrinution (0,1)
 	
-	for (int i = n_imp; i < setup.population_size; i++) {
+	for (int i = n_imp; i < setup.population_size; ++i) {
 		double roll = dist(eng);
 		double tmp = 0;
 
-		for (int j = 0; j < n_imp; j++) {
+		for (int j = 0; j < n_imp; ++j) {
 			tmp += prob[j];
 			if (roll <= tmp) {
 				imp[j].colonies.push_back(&pop[i]);
@@ -263,7 +262,7 @@ void ImperialistAlg::calc_fitness_all()
 double ImperialistAlg::calc_fitness_imp(const Imperialist& imp)
 {
 	double sum = imp.imp->fitness;
-	for (int i = 0; i < imp.colonies.size(); i++) {
+	for (int i = 0; i < imp.colonies.size(); ++i) {
 		sum += imp.colonies[i]->fitness;
 	}
 
@@ -274,7 +273,7 @@ double ImperialistAlg::calc_distance(const std::vector<double>& vec1, const std:
 {
 	double sum = 0.0;
 
-	for (int i = 0; i < vec1.size(); i++) {
+	for (int i = 0; i < vec1.size(); ++i) {
 		sum += std::pow(vec1[i] - vec2[i], 2);
 	}
 

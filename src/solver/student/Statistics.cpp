@@ -17,6 +17,12 @@ void Statistics::begin(solver::TSolver_Setup& setup, short type)
 	Statistics::stats.push_back(stat);
 }
 
+void Statistics::iteration(double cost)
+{
+	Stat& stat = Statistics::stats.back();
+	stat.fitness.push_back(cost);
+}
+
 void Statistics::end(int gen)
 {
 	time_t end_time;
@@ -39,6 +45,7 @@ void Statistics::print_stat()
 		case 2: std::cout << "Type: openCL"; break;
 		}
 
-		std::cout << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size << ", time: " << stat.time << "s" << std::endl;
+		std::cout << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size 
+			<< ", generations: " << stat.generations << ", time: " << stat.time << "s" << std::endl;
 	}
 }
