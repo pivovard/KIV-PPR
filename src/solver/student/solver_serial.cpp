@@ -1,10 +1,38 @@
 #include "..\solver_smp.h"
+#include "ICA.h"
+#include "Statistics.h"
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
-	//az ho sem naimplementujete, pak se vrati S_OK, S_FALSE, E_INVALIDARG nebo E_FAIL dle duvod, proc volani solveru selhalo
-					  //https://docs.microsoft.com/en-us/windows/win32/learnwin32/error-handling-in-com
 
-	//kdyz uspesne najdete reseni, zapisete ho do setup.solution
+	Statistics::begin(setup, 1);
+	ICA ica(setup);
 
-	return S_FALSE;
+	ica.gen_population();
+	ica.print_population();
+
+	int i = 0;
+	for (i; i < setup.max_generations; ++i) {
+		ica.evolve();
+
+		double cost_n = ica.get_min();
+		Statistics::iteration(cost_n);
+
+		//end if convergence stopped
+		if (false) {
+			break;
+		}
+	}
+
+	ica.write_solution();
+	ica.print_population();
+
+	Statistics::end(i);
+	Statistics::print_stat();
+
+	if (setup.population_size == 7) {
+		Statistics::export_stat();
+		return S_OK;
+	}
+
+	return S_OK;
 }

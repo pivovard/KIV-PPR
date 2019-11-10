@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <time.h>
 #include "../../common/iface/SolverIface.h"
@@ -27,5 +28,6 @@ public:
 	static void iteration(double cost);
 	static void end(int gen);
 	static void print_stat();
+	static void export_stat();
 };
 

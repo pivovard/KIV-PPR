@@ -1,6 +1,7 @@
 #include "Statistics.h"
 
 
+
 std::vector<Stat> Statistics::stats;
 time_t Statistics::start_time;
 
@@ -37,8 +38,6 @@ void Statistics::end(int gen)
 void Statistics::print_stat()
 {
 	for (Stat& stat : Statistics::stats) {
-		
-
 		switch (stat.type) {
 		case 0: std::cout << "Type: serial"; break;
 		case 1: std::cout << "Type: smp"; break;
@@ -48,4 +47,29 @@ void Statistics::print_stat()
 		std::cout << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size 
 			<< ", generations: " << stat.generations << ", time: " << stat.time << "s" << std::endl;
 	}
+}
+
+void Statistics::export_stat()
+{
+	std::ofstream file;
+	file.open("results.txt");
+
+	for (Stat& stat : Statistics::stats) {
+		switch (stat.type) {
+		case 0: file << "Type: serial"; break;
+		case 1: file << "Type: smp"; break;
+		case 2: file << "Type: openCL"; break;
+		}
+
+		file << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size
+			<< ", generations: " << stat.generations << ", time: " << stat.time << "s" << std::endl;
+
+		for (auto& cost : stat.fitness) {
+			file << cost << ",";
+		}
+
+		file << std::endl;
+	}
+
+	file.close();
 }

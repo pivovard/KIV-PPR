@@ -9,6 +9,8 @@
 
 HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 	
+	return S_FALSE;
+
 	Statistics::begin(setup, 1);
 	ImperialistAlg imp(setup);
 
