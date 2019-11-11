@@ -4,6 +4,20 @@
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 
+	return S_FALSE;
+
+	/*std::vector<double> a{ 1,2,3 };
+	std::vector<double> b(a);
+	b = std::vector<double>(a.size() - 1);
+
+	std::copy(a.begin(), a.begin() + 0, b.begin());
+	std::copy(a.begin() + 1, a.end(), b.begin() + 0);
+
+	ica.print_vector(a);
+	std::cout << std::endl;
+	ica.print_vector(b);
+	std::cout << std::endl;*/
+
 	Statistics::begin(setup, 1);
 	ICA ica(setup);
 
@@ -29,10 +43,11 @@ HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 	Statistics::end(i);
 	Statistics::print_stat();
 
-	if (setup.population_size == 7) {
-		Statistics::export_stat();
-		return S_OK;
+	if (setup.population_size == 100) {
+		Statistics::export_stat("serial");
+		Statistics::clear();
 	}
 
+	system("pause");
 	return S_OK;
 }

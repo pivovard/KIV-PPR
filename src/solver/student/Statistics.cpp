@@ -4,9 +4,10 @@
 
 std::vector<Stat> Statistics::stats;
 time_t Statistics::start_time;
+short Statistics::problem_n = 0;
 
 
-void Statistics::begin(solver::TSolver_Setup& setup, short type)
+void Statistics::begin(const solver::TSolver_Setup& setup, short type)
 {
 	time(&start_time);
 
@@ -34,6 +35,10 @@ void Statistics::end(int gen)
 	stat.generations = gen;
 }
 
+void Statistics::clear() {
+	Statistics::stats.clear();
+}
+
 
 void Statistics::print_stat()
 {
@@ -45,30 +50,50 @@ void Statistics::print_stat()
 		}
 
 		std::cout << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size 
-			<< ", generations: " << stat.generations << ", time: " << stat.time << "s" << std::endl;
+			<< ", generations: " << stat.generations << ", solution: " << stat.fitness.back() << ", time: " << stat.time << "s" << std::endl;
 	}
 }
 
-void Statistics::export_stat()
+void Statistics::export_stat(std::string type)
 {
-	std::ofstream file;
-	file.open("results.txt");
+	problem_n++;
 
+	std::ofstream file;
+	std::ofstream file_all;
+	if (problem_n > 1) {
+		file.open("results_" + type + ".txt", std::ofstream::out | std::ofstream::app);
+		file_all.open("results_all_" + type + ".txt", std::ofstream::out | std::ofstream::app);
+	}
+	else {
+		file.open("results_" + type + ".txt", std::ofstream::out | std::ofstream::trunc);
+		file_all.open("results_all_" + type + ".txt", std::ofstream::out | std::ofstream::trunc);
+	}
+	
 	for (Stat& stat : Statistics::stats) {
 		switch (stat.type) {
-		case 0: file << "Type: serial"; break;
-		case 1: file << "Type: smp"; break;
-		case 2: file << "Type: openCL"; break;
+		case 0: 
+			file << "Type: serial";
+			file_all << "Type: serial";
+			break;
+		case 1: 
+			file << "Type: smp";
+			file_all << "Type: smp";
+			break;
+		case 2: 
+			file << "Type: openCL";
+			file_all << "Type: openCL";
+			break;
 		}
 
 		file << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size
-			<< ", generations: " << stat.generations << ", time: " << stat.time << "s" << std::endl;
+			<< ", generations: " << stat.generations << ", solution: " << stat.fitness.back() << ", time: " << stat.time << "s" << std::endl;
+		file_all << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size
+			<< ", generations: " << stat.generations << ", solution: " << stat.fitness.back() << ", time: " << stat.time << "s" << std::endl;
 
 		for (auto& cost : stat.fitness) {
-			file << cost << ",";
+			file_all << cost << ",";
 		}
-
-		file << std::endl;
+		file_all << std::endl << std::endl;
 	}
 
 	file.close();

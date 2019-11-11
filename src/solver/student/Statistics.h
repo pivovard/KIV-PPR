@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <time.h>
+#include <string>
 #include "../../common/iface/SolverIface.h"
 
 
@@ -22,12 +23,14 @@ static class Statistics
 private:
 	static std::vector<Stat> stats;
 	static time_t start_time;
+	static short problem_n;
 
 public:
-	static void begin(solver::TSolver_Setup& setup, short type);
+	static void begin(const solver::TSolver_Setup& setup, short type);
 	static void iteration(double cost);
 	static void end(int gen);
+	static void clear();
 	static void print_stat();
-	static void export_stat();
+	static void export_stat(std::string type);
 };
 

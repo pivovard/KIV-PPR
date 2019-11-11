@@ -1,29 +1,25 @@
 #include "..\solver_smp.h"
-#include<list>
-#include<vector>
-#include <iostream>
-#include<random>
-#include "ImperialistAlg.h"
+#include "ICA_smp.h"
 #include "Statistics.h"
 
 
 HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 	
-	return S_FALSE;
+	//return S_FALSE;
 
-	Statistics::begin(setup, 1);
-	ImperialistAlg imp(setup);
+	Statistics::begin(setup, 2);
+	ICA_smp ica(setup);
 
-	imp.gen_population();
-	imp.print_population();
-	
+	ica.gen_population();
+	ica.print_population();
+
+	system("pause");
+
 	int i = 0;
-	//for (i; i < setup.max_generations; ++i) {
-	for (i; i < 10; ++i) {
-		imp.evolve();
-		imp.print_population();
+	for (i; i < setup.max_generations; ++i) {
+		ica.evolve();
 
-		double cost_n = imp.get_min();
+		double cost_n = ica.get_min();
 		Statistics::iteration(cost_n);
 
 		//end if convergence stopped
@@ -32,12 +28,16 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 		}
 	}
 
-	imp.write_solution();
-	imp.print_population();
+	ica.write_solution();
+	ica.print_population();
 
 	Statistics::end(i);
 	Statistics::print_stat();
 
-	system("pause");
+	if (setup.population_size == 100) {
+		Statistics::export_stat("serial");
+		Statistics::clear();
+	}
+
 	return S_OK;
 }

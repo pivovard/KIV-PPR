@@ -1,23 +1,18 @@
 #include"ICA.h"
 
-std::random_device rd; // obtain a random number from hardware
-std::mt19937 eng(rd()); // seed the generator
+
 
 
 ICA::ICA(const solver::TSolver_Setup& setup) : setup(setup)
 {
+	eng = std::mt19937(rd());
+
 	std::cout << "Problem size:\t" << setup.problem_size << std::endl;
 	std::cout << "Population size:\t" << setup.population_size << std::endl;
 	std::cout << "Upper bound:\t" << *setup.upper_bound << std::endl;
 	std::cout << "Lower bound:\t" << *setup.lower_bound << std::endl;
 }
 
-
-void ICA::init()
-{
-	gen_population();
-	print_population();
-}
 
 void ICA::evolve()
 {
@@ -129,7 +124,7 @@ void ICA::migrate_colonies()
 		imp[vec[2]].colonies.erase(imp[vec[2]].colonies.begin() + vec[0]);
 	}
 
-	//imperialist losts power
+	//imperialist losts power - must be serial
 	for (int i = 0; i < imp.size(); ++i) {
 		//if no colonies
 		if (imp[i].colonies.size() == 0) {
@@ -147,7 +142,16 @@ void ICA::migrate_colonies()
 			if (max != i) {
 				imp[i].imp->imperialist = false;
 				imp[max].colonies.push_back(imp[i].imp);
-				imp.erase(imp.begin() + i);
+				//imp.erase(imp.begin() + i);
+
+				//copy imp to tmp
+				concurrency::concurrent_vector<Imperialist> tmp(imp);
+				//std::copy(imp.begin(), imp.end(), tmp.begin());
+
+				//copy tmp to imp without imperialist i
+				imp = concurrency::concurrent_vector<Imperialist>(tmp.size() - 1);
+				std::copy(tmp.begin(), tmp.begin() + i, imp.begin());
+				std::copy(tmp.begin() + i+1, tmp.end(), imp.begin() + i);
 			}
 		}
 	}
@@ -157,21 +161,21 @@ double ICA::get_min()
 {
 	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
 	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
-	return it._Ptr->fitness;
+	return it->fitness;
 }
 
 double ICA::get_max()
 {
 	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
 	const auto& it = std::max_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
-	return it._Ptr->fitness;
+	return it->fitness;
 }
 
 void ICA::write_solution()
 {
 	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
 	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
-	std::copy(it._Ptr->vec.begin(), it._Ptr->vec.end(), setup.solution);
+	std::copy(it->vec.begin(), it->vec.end(), setup.solution);
 }
 
 double ICA::gen_double(double lower_bound, double upper_bound)
@@ -307,6 +311,8 @@ void ICA::print_population()
 
 	std::cout << std::endl;
 }
+
+
 
 void ICA::print_vector(const std::vector<double>& vec)
 {
