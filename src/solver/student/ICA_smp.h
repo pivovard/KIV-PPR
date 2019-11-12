@@ -3,7 +3,7 @@
 #include"ICA.h"
 #include<tbb/parallel_for.h>
 #include<tbb/blocked_range.h>
-#include<concurrent_vector.h>
+#include<tbb/concurrent_vector.h>
 
 #include "../../common/iface/SolverIface.h"
 #include "Country.h"
@@ -23,6 +23,10 @@ public:
 	~ICA_smp() = default;
 
 	virtual void gen_population() override;
+	virtual void evolve() override;
+	virtual void move_all_colonies(Imperialist& imp) override;
+	virtual void migrate_colonies() override;
 
-	//virtual void print_population() override;
+	virtual void calc_fitness_all() override;
+	virtual double calc_fitness_imp(const Imperialist& imp) override;
 };

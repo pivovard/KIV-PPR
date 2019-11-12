@@ -63,6 +63,8 @@ void Statistics::export_stat(std::string type)
 	if (problem_n > 1) {
 		file.open("results_" + type + ".txt", std::ofstream::out | std::ofstream::app);
 		file_all.open("results_all_" + type + ".txt", std::ofstream::out | std::ofstream::app);
+		file << std::endl;
+		file_all << std::endl;
 	}
 	else {
 		file.open("results_" + type + ".txt", std::ofstream::out | std::ofstream::trunc);

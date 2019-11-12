@@ -4,7 +4,7 @@
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 
-	return S_FALSE;
+	//return S_FALSE;
 
 	/*std::vector<double> a{ 1,2,3 };
 	std::vector<double> b(a);
@@ -18,7 +18,7 @@ HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 	ica.print_vector(b);
 	std::cout << std::endl;*/
 
-	Statistics::begin(setup, 1);
+	Statistics::begin(setup, 0);
 	ICA ica(setup);
 
 	ica.gen_population();
@@ -48,6 +48,6 @@ HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 		Statistics::clear();
 	}
 
-	system("pause");
+	//system("pause");
 	return S_OK;
 }

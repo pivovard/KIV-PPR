@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 #include<random>
-#include<concurrent_vector.h>
+#include<tbb/concurrent_vector.h>
 
 #include "../../common/iface/SolverIface.h"
 #include "Country.h"
@@ -20,8 +20,8 @@ private:
 protected:
 	const solver::TSolver_Setup& setup;
 
-	concurrency::concurrent_vector<Country> pop;
-	concurrency::concurrent_vector<Imperialist> imp;
+	tbb::concurrent_vector<Country> pop;
+	tbb::concurrent_vector<Imperialist> imp;
 
 	const double beta = 2.0;
 	const double gama = std::_Pi / 4.0;
@@ -50,6 +50,8 @@ public:
 	
 
 	void move_colony(Country& imp, Country& colony);
+	void do_migration(const std::vector<double>& P, const std::vector<std::vector<_int64>>& migration);
+
 	double get_min();
 	double get_max();
 	double calc_fitness(const std::vector<double>& vec);

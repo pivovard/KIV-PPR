@@ -7,13 +7,11 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	
 	//return S_FALSE;
 
-	Statistics::begin(setup, 2);
+	Statistics::begin(setup, 1);
 	ICA_smp ica(setup);
 
 	ica.gen_population();
 	ica.print_population();
-
-	system("pause");
 
 	int i = 0;
 	for (i; i < setup.max_generations; ++i) {
@@ -35,7 +33,7 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	Statistics::print_stat();
 
 	if (setup.population_size == 100) {
-		Statistics::export_stat("serial");
+		Statistics::export_stat("smp");
 		Statistics::clear();
 	}
 

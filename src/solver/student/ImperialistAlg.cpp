@@ -126,7 +126,7 @@ void ImperialistAlg::migrate_colonies()
 	//migration
 	for (auto& vec : migration) {
 		imp[vec[1]].colonies.push_back(imp[vec[2]].colonies[vec[0]]);
-		imp[vec[2]].colonies.erase(imp[vec[2]].colonies.begin()+vec[0]);
+		//imp[vec[2]].colonies.erase(imp[vec[2]].colonies.begin()+vec[0]);
 	}
 
 	//imperialist losts power
