@@ -4,6 +4,7 @@
 #include<tbb/parallel_for.h>
 #include<tbb/blocked_range.h>
 #include<tbb/concurrent_vector.h>
+#include<tbb/mutex.h>
 
 #include "../../common/iface/SolverIface.h"
 #include "Country.h"
@@ -28,5 +29,4 @@ public:
 	virtual void migrate_colonies() override;
 
 	virtual void calc_fitness_all() override;
-	virtual double calc_fitness_imp(const Imperialist& imp) override;
 };

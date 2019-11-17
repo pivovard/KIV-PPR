@@ -25,7 +25,7 @@ protected:
 
 	const double beta = 2.0;
 	const double gama = std::_Pi / 4.0;
-	const double xi = 0.1;
+	const double xi = 0.5;
 
 	const size_t start_imp = 3;
 	const size_t max_colonies = 12;
@@ -45,12 +45,13 @@ public:
 	virtual void migrate_colonies();
 
 	virtual void calc_fitness_all();
-	virtual double calc_fitness_imp(const Imperialist& imp);
+	double calc_fitness_imp(const Imperialist& imp);
 
 	
 
 	void move_colony(Country& imp, Country& colony);
 	void do_migration(const std::vector<double>& P, const std::vector<std::vector<_int64>>& migration);
+	void do_migration(const std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration);
 
 	double get_min();
 	double get_max();

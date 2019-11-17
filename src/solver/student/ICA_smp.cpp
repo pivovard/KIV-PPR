@@ -73,8 +73,10 @@ void ICA_smp::evolve()
 		move_all_colonies(imp[r]);
 	});
 
-	//migrate colonies
-	migrate_colonies();
+	if (imp.size() > 1) {
+		//migrate colonies
+		migrate_colonies();
+	}
 }
 
 void ICA_smp::move_all_colonies(Imperialist& imp)
@@ -101,31 +103,32 @@ void ICA_smp::migrate_colonies()
 {
 	//double max_tc = DBL_MIN;
 	double max_tc = get_max();
-	double sum_tc = 0.0; //mutex
+	double sum_tc = 0.0;
+	tbb::mutex mutex;
 
 	//count total fitness
 	//for (auto& i : imp) {
 	tbb::parallel_for(size_t(0), imp.size(), [&](size_t r) {
 		double tc = calc_fitness_imp(imp[r]);
 		imp[r].total_fitness = tc;
+		tbb::mutex::scoped_lock lock(mutex);
 		sum_tc += tc;
-		//if (tc > max_tc) max_tc = tc;
 	});
 
 	//count probability vector p=|NTC/sum NTC |
 	std::vector<double> P;
 
 	for (auto& i : imp) {
-		double p = std::abs((i.total_fitness - max_tc) / sum_tc); //normalized - wrong  formula
-		//double p = std::abs(i.total_fitness / sum_tc); // not normalized ok
+		//double p = std::abs((i.total_fitness - max_tc) / sum_tc); //normalized
+		double p = std::abs(i.total_fitness / sum_tc); // not normalized
 		P.push_back(p);
 	}
 
 	//{colony, imp in, imp out}
 	//{  j,      max,     i   }
-	std::vector<std::vector<_int64>> migration; //mutex
-	for (int i = 0; i < imp.size(); ++i) {
-	//tbb::parallel_for(size_t(0), imp.size(), [&](size_t i) {
+	std::vector<std::vector<_int64>> migration;
+	//for (int i = 0; i < imp.size(); ++i) {
+	tbb::parallel_for(size_t(0), imp.size(), [&](size_t i) {
 		//for (auto* col : imp[i].colonies) {
 		//for (int j = 0; j < imp[i].colonies.size(); ++j) {
 		for (int j = imp[i].colonies.size() - 1; j > -1; --j) {
@@ -136,18 +139,19 @@ void ICA_smp::migrate_colonies()
 			std::vector<double> D(P.size());
 			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
 
-			auto it = std::max_element(D.begin(), D.end());
+			auto it = std::min_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);
 
 			//migration
 			if (max != i) {
 				//imp[max].colonies.push_back(imp[i].colonies[j]);
 				//imp[i].colonies.erase(imp[i].colonies.begin()+j);
+				tbb::mutex::scoped_lock lock(mutex);
 				migration.push_back({ j, max, _int64(i) });
 			}
 		}
-	}//);
-
+	});
+	//std::cout << migration.size();
 	do_migration(P, migration);
 }
 
@@ -159,21 +163,5 @@ void ICA_smp::calc_fitness_all()
 	tbb::parallel_for(size_t(0), setup.population_size, [&](size_t r) {
 		pop[r].fitness = calc_fitness(pop[r].vec);
 	});
-}
-
-double ICA_smp::calc_fitness_imp(const Imperialist& imp)
-{
-	//without colonies increase cost by 2*xi
-	if (imp.colonies.size() == 0) return imp.imp->fitness + 2 * xi * imp.imp->fitness;
-
-	double sum = 0; //mutex
-	//for (int i = 0; i < imp.colonies.size(); ++i) {
-	tbb::parallel_for(size_t(0), imp.colonies.size(), [&](size_t r) {
-		double cost = imp.colonies[r]->fitness;
-		sum += cost;
-	});
-
-	//total imp cost = imp cost + xi*mean(cost of colonies)
-	return imp.imp->fitness + xi * sum / imp.colonies.size();
 }
 

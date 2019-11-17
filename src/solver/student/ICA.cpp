@@ -21,8 +21,10 @@ void ICA::evolve()
 		move_all_colonies(i);
 	}
 
-	//migrate colonies
-	migrate_colonies();
+	if (imp.size() > 1) {
+		//migrate colonies
+		migrate_colonies();
+	}
 }
 
 void ICA::move_all_colonies(Imperialist& imp)
@@ -87,11 +89,11 @@ void ICA::migrate_colonies()
 	std::vector<double> P;
 
 	for (auto& i : imp) {
-		double p = std::abs((i.total_fitness - max_tc) / sum_tc); //normalized - wrong  formula
-		//double p = std::abs(i.total_fitness / sum_tc); // not normalized ok
+		//double p = std::abs((i.total_fitness - max_tc) / sum_tc); //normalized
+		double p = std::abs(i.total_fitness / sum_tc); // not normalized
 		P.push_back(p);
 	}
-
+	
 	//{colony, imp in, imp out}
 	//{  j,      max,     i   }
 	std::vector<std::vector<_int64>> migration;
@@ -105,10 +107,10 @@ void ICA::migrate_colonies()
 			//D=P-R
 			std::vector<double> D(P.size());
 			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
-
-			auto it = std::max_element(D.begin(), D.end());
+			
+			auto it = std::min_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);
-
+			
 			//migration
 			if (max != i) {
 				//imp[max].colonies.push_back(imp[i].colonies[j]);
@@ -138,6 +140,50 @@ void ICA::do_migration(const std::vector<double>& P, const std::vector<std::vect
 	}
 
 	//imperialist losts power - must be serial
+	for (int i = imp.size() - 1; i > -1; --i) {
+		//if no colonies
+		if (imp[i].colonies.size() == 0) {
+			auto it = std::min_element(imp.begin(), imp.end(), [](Imperialist a, Imperialist b) { return a.total_fitness < b.total_fitness; });
+			_int64 max = std::distance(imp.begin(), it);
+
+			//extinction
+			if (max != i) {
+				imp[i].imp->imperialist = false;
+				imp[max].colonies.push_back(imp[i].imp);
+				//imp.erase(imp.begin() + i);
+
+				//copy imp to tmp
+				tbb::concurrent_vector<Imperialist> tmp(imp);
+				//std::copy(imp.begin(), imp.end(), tmp.begin());
+
+				//copy tmp to imp without imperialist i
+				imp = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
+				std::copy(tmp.begin(), tmp.begin() + i, imp.begin());
+				std::copy(tmp.begin() + i + 1, tmp.end(), imp.begin() + i);
+
+				--i; //size reduced by 1
+			}
+		}
+	}
+}
+
+void ICA::do_migration(const std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration)
+{
+	//migration
+	for (auto& vec : migration) {
+		imp[vec[1]].colonies.push_back(imp[vec[2]].colonies[vec[0]]);
+		//imp[vec[2]].colonies.erase(imp[vec[2]].colonies.begin() + vec[0]);
+
+		//copy colonies to tmp
+		tbb::concurrent_vector<Country*> tmp(imp[vec[2]].colonies);
+
+		//copy tmp to imp without imperialist i
+		imp[vec[2]].colonies = tbb::concurrent_vector<Country*>(tmp.size() - 1);
+		std::copy(tmp.begin(), tmp.begin() + vec[0], imp[vec[2]].colonies.begin());
+		std::copy(tmp.begin() + vec[0] + 1, tmp.end(), imp[vec[2]].colonies.begin() + vec[0]);
+	}
+
+	//imperialist losts power - must be serial
 	for (int i = 0; i < imp.size(); ++i) {
 		//if no colonies
 		if (imp[i].colonies.size() == 0) {
@@ -148,7 +194,7 @@ void ICA::do_migration(const std::vector<double>& P, const std::vector<std::vect
 			std::vector<double> D(P.size());
 			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
 
-			auto it = std::max_element(D.begin(), D.end());
+			auto it = std::min_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);
 
 			//extinction
@@ -318,7 +364,6 @@ void ICA::print_population()
 			std::cout << "\tCol: ";
 			std::cout << col->fitness << " - ";
 			print_vector(col->vec);
-			std::cout << std::endl;
 		}
 	}
 
@@ -332,4 +377,5 @@ void ICA::print_vector(const std::vector<double>& vec)
 	for (const auto& v : vec) {
 		std::cout << v << " ";
 	}
+	std::cout << std::endl;
 }
