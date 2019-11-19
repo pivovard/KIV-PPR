@@ -2,9 +2,11 @@
 
 #include"ICA.h"
 #include<tbb/parallel_for.h>
+#include<tbb/parallel_reduce.h>
 #include<tbb/blocked_range.h>
 #include<tbb/concurrent_vector.h>
 #include<tbb/mutex.h>
+#include<numeric>
 
 #include "../../common/iface/SolverIface.h"
 #include "Country.h"
@@ -29,4 +31,7 @@ public:
 	virtual void migrate_colonies() override;
 
 	virtual void calc_fitness_all() override;
+	virtual double calc_fitness_imp(const Imperialist& imp) override;
+	virtual double get_min() override;
+	virtual double get_max() override;
 };

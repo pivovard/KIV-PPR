@@ -46,14 +46,13 @@ public:
 	virtual void calc_fitness_all();
 	virtual double calc_fitness_imp(const Imperialist& imp);
 
-	
+	virtual double get_min();
+	virtual double get_max();
 
 	void move_colony(Country& imp, Country& colony);
 	void do_migration(const std::vector<double>& P, const std::vector<std::vector<_int64>>& migration);
 	void do_migration(const std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration);
-
-	double get_min();
-	double get_max();
+	
 	double calc_fitness(const std::vector<double>& vec);
 	double calc_distance(const std::vector<double>& vec1, const std::vector<double>& vec2);
 	void write_solution();

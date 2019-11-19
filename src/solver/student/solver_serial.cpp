@@ -3,6 +3,8 @@
 #include "Statistics.h"
 
 #include<numeric>
+#include<tbb/parallel_reduce.h>
+#include<tbb/blocked_range.h>
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 
@@ -13,16 +15,26 @@ HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 
 
 	////////////////////////////test
-	std::vector<double> a{ 1,2,3,4,5,6,7,8,9,10 };
-	std::vector<double> b(5);
-	//b = std::vector<double>(a.size() - 1);
+	/*tbb::concurrent_vector<double> a{ 1,2,3,4,5,6,7,8,9,10 };
+	tbb::concurrent_vector<double> b(5);
+
 	size_t size = a.size();
 	std::copy(a.end()  - 5, a.end() , b.begin());
 
-	ica.print_vector(a);
-	ica.print_vector(b);
+	double sum = tbb::parallel_reduce(tbb::blocked_range<tbb::concurrent_vector<double>::iterator>(a.begin(), a.end()), 0.0, [&](const auto& r, auto& init) {
+		return std::accumulate(r.begin(), r.end(), init);
+		},
+		std::plus<double>());
 
-	system("pause");
+	auto it =  a.begin();
+	double e = *it;
+	double min = tbb::parallel_reduce(tbb::blocked_range<tbb::concurrent_vector<double>::iterator>(a.begin(), a.end()), 0.0, [&](const auto& r, auto& init) {
+		return *std::min_element(a.begin(), a.end(), [](double& a, double& b) { return a < b; });
+		},
+		[](const double x, const double y) {return x < y; });
+
+	std::cout << min << std::endl;
+	system("pause");*/
 
 	////////////////////////endtest
 

@@ -107,6 +107,7 @@ void ICA_smp::migrate_colonies()
 	tbb::mutex mutex;
 
 	//count total fitness
+	//may be parallel reduce
 	//for (auto& i : imp) {
 	tbb::parallel_for(size_t(0), imp.size(), [&](size_t r) {
 		double tc = calc_fitness_imp(imp[r]);
@@ -163,5 +164,44 @@ void ICA_smp::calc_fitness_all()
 	tbb::parallel_for(size_t(0), setup.population_size, [&](size_t r) {
 		pop[r].fitness = calc_fitness(pop[r].vec);
 	}, tbb::auto_partitioner());
+}
+
+double ICA_smp::calc_fitness_imp(const Imperialist& imp)
+{
+	//without colonies increase cost by 2*xi
+	if (imp.colonies.size() == 0) return imp.imp->fitness + 2 * xi * imp.imp->fitness;
+
+	double sum = tbb::parallel_reduce(tbb::blocked_range<tbb::concurrent_vector<Country*>::const_iterator>(imp.colonies.begin(), imp.colonies.end()), 0.0, [&](const auto& r, auto& init) -> double {
+		//return std::accumulate(r.begin(), r.end(), init);
+		double s = 0.0;
+		for (auto itr = r.begin(); itr != r.end(); ++itr) {
+			s += (*itr)->fitness;
+		}
+		return s;
+		},
+		std::plus<double>());
+
+	//total imp cost = imp cost + xi*mean(cost of colonies)
+	return imp.imp->fitness + xi * sum / imp.colonies.size();
+}
+
+double ICA_smp::get_min()
+{
+	double min = tbb::parallel_reduce(tbb::blocked_range<tbb::concurrent_vector<Country>::iterator>(pop.begin(), pop.end()), 0.0, [&](const auto& r, auto& init) -> double {
+		const auto& it = std::min_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
+		return it->fitness;
+		},
+		[](const double x, const double y) {return std::min(x, y); });
+	return min;
+}
+
+double ICA_smp::get_max()
+{
+	double max = tbb::parallel_reduce(tbb::blocked_range<tbb::concurrent_vector<Country>::iterator>(pop.begin(), pop.end()), 0.0, [&](const auto& r, auto& init) -> double {
+		const auto& it = std::max_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
+		return it->fitness;
+		},
+		[](const double x, const double y) {return std::max(x, y); });
+	return max;
 }
 

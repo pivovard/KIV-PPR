@@ -220,21 +220,21 @@ void ICA::do_migration(const std::vector<double>& P, const tbb::concurrent_vecto
 double ICA::get_min()
 {
 	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
-	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
 	return it->fitness;
 }
 
 double ICA::get_max()
 {
 	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
-	const auto& it = std::max_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	const auto& it = std::max_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
 	return it->fitness;
 }
 
 void ICA::write_solution()
 {
 	//auto& it = std::min(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
-	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
 	std::copy(it->vec.begin(), it->vec.end(), setup.solution);
 }
 

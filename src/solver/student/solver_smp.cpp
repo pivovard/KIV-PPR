@@ -2,6 +2,8 @@
 #include "ICA_smp.h"
 #include "Statistics.h"
 
+#include<numeric>
+
 
 HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 	
@@ -14,13 +16,12 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	ica.print_population();
 
 	int i = 0;
-	for (i; i < setup.max_generations/1000; ++i) {
+	for (i; i < setup.max_generations; ++i) {
 		ica.evolve();
 
 		double cost_n = ica.get_min();
 		Statistics::iteration(cost_n);
 
-		//end if convergence stopped
 		//end if convergence stopped
 		size_t n = 10;
 		double eps = 0.0000000001;
