@@ -4,7 +4,7 @@
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 
-	//return S_FALSE;
+	return S_FALSE;
 
 	/*std::vector<double> a{ 1,2,3 };
 	std::vector<double> b(a);

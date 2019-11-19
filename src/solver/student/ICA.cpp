@@ -1,11 +1,12 @@
 #include"ICA.h"
 
 
-
+thread_local std::mt19937_64 ICA::eng64;
 
 ICA::ICA(const solver::TSolver_Setup& setup) : setup(setup)
 {
 	eng = std::mt19937(rd());
+	eng64 = std::mt19937_64(rd());
 
 	std::cout << "Problem size:\t" << setup.problem_size << std::endl;
 	std::cout << "Population size:\t" << setup.population_size << std::endl;
@@ -240,7 +241,7 @@ void ICA::write_solution()
 double ICA::gen_double(double lower_bound, double upper_bound)
 {
 	std::uniform_real_distribution<> distr(lower_bound, upper_bound);
-	return distr(eng);
+	return distr(eng64);
 }
 
 std::vector<double> ICA::gen_vector(size_t size, double lower_bound, double upper_bound)
@@ -250,7 +251,7 @@ std::vector<double> ICA::gen_vector(size_t size, double lower_bound, double uppe
 	std::vector<double> vec;
 
 	for (int j = 0; j < size; ++j) {
-		double val = distr(eng);
+		double val = distr(eng64);
 		vec.push_back(val);
 	}
 

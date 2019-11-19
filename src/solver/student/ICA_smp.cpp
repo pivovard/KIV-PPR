@@ -14,7 +14,7 @@ void ICA_smp::gen_population()
 		Country c;
 		c.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
 		pop.push_back(c);
-	});
+	}, tbb::auto_partitioner());
 
 	//calc fitness functions and sort
 	calc_fitness_all();
@@ -52,7 +52,7 @@ void ICA_smp::gen_population()
 	//for (int i = n_imp; i < setup.population_size; ++i) {
 	//tbb::parallel_for(tbb::blocked_range<size_t>(n_imp, setup.population_size), [&](const auto& r) {
 	tbb::parallel_for(size_t(n_imp), setup.population_size, [&](size_t r) {
-		double roll = dist(eng);
+		double roll = dist(eng64);
 		double tmp = 0;
 
 		for (int j = 0; j < n_imp; ++j) {
@@ -63,7 +63,7 @@ void ICA_smp::gen_population()
 				break;
 			}
 		}
-	});
+	}, tbb::auto_partitioner());
 }
 
 void ICA_smp::evolve()
@@ -71,7 +71,7 @@ void ICA_smp::evolve()
 	//move colonies
 	tbb::parallel_for(size_t(0), imp.size(), [&](size_t r) {
 		move_all_colonies(imp[r]);
-	});
+	}, tbb::auto_partitioner());
 
 	if (imp.size() > 1) {
 		//migrate colonies
@@ -96,7 +96,7 @@ void ICA_smp::move_all_colonies(Imperialist& imp)
 			imp.imp = tmp;
 			imp.imp->imperialist = true;
 		}
-	});
+	}, tbb::auto_partitioner());
 }
 
 void ICA_smp::migrate_colonies()
@@ -113,7 +113,7 @@ void ICA_smp::migrate_colonies()
 		imp[r].total_fitness = tc;
 		tbb::mutex::scoped_lock lock(mutex);
 		sum_tc += tc;
-	});
+	}, tbb::auto_partitioner());
 
 	//count probability vector p=|NTC/sum NTC |
 	std::vector<double> P;
@@ -150,7 +150,7 @@ void ICA_smp::migrate_colonies()
 				migration.push_back({ j, max, _int64(i) });
 			}
 		}
-	});
+	}, tbb::auto_partitioner());
 	//std::cout << migration.size();
 	do_migration(P, migration);
 }
@@ -162,6 +162,6 @@ void ICA_smp::calc_fitness_all()
 	}*/
 	tbb::parallel_for(size_t(0), setup.population_size, [&](size_t r) {
 		pop[r].fitness = calc_fitness(pop[r].vec);
-	});
+	}, tbb::auto_partitioner());
 }
 

@@ -32,6 +32,7 @@ protected:
 
 	std::random_device rd; // obtain a random number from hardware
 	std::mt19937 eng; // seed the generator
+	static thread_local std::mt19937_64 eng64;
 	
 
 public:
