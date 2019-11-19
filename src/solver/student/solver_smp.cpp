@@ -14,15 +14,21 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	ica.print_population();
 
 	int i = 0;
-	for (i; i < setup.max_generations/100; ++i) {
+	for (i; i < setup.max_generations/1000; ++i) {
 		ica.evolve();
 
 		double cost_n = ica.get_min();
 		Statistics::iteration(cost_n);
 
 		//end if convergence stopped
-		if (false) {
-			break;
+		//end if convergence stopped
+		size_t n = 10;
+		double eps = 0.0000000001;
+		if (i > n) {
+			std::vector<double> vec = Statistics::get_last_n(n);
+			double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
+
+			if (std::abs(sum / n - vec.back()) < eps) break;
 		}
 	}
 
@@ -37,5 +43,6 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 		Statistics::clear();
 	}
 
+	system("pause");
 	return S_OK;
 }

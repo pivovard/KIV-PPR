@@ -28,6 +28,7 @@ private:
 public:
 	static void begin(const solver::TSolver_Setup& setup, short type);
 	static void iteration(double cost);
+	static std::vector<double> get_last_n(size_t n);
 	static void end(int gen);
 	static void clear();
 	static void print_stat();

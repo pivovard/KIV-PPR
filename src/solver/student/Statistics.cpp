@@ -25,6 +25,16 @@ void Statistics::iteration(double cost)
 	stat.fitness.push_back(cost);
 }
 
+std::vector<double> Statistics::get_last_n(size_t n)
+{
+	Stat& stat = Statistics::stats.back();
+
+	std::vector<double> vec(n);
+	std::copy(stat.fitness.end() - n, stat.fitness.end(), vec.begin());
+
+	return vec;
+}
+
 void Statistics::end(int gen)
 {
 	time_t end_time;

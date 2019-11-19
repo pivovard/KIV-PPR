@@ -14,8 +14,6 @@
 class ICA
 {
 private:
-	//std::vector<Country> pop;
-	//std::vector<Imperialist> imp;
 
 protected:
 	const solver::TSolver_Setup& setup;
@@ -46,7 +44,7 @@ public:
 	virtual void migrate_colonies();
 
 	virtual void calc_fitness_all();
-	double calc_fitness_imp(const Imperialist& imp);
+	virtual double calc_fitness_imp(const Imperialist& imp);
 
 	
 
@@ -63,7 +61,6 @@ public:
 	double gen_double(double lower_bound, double upper_bound);
 	std::vector<double> gen_vector(size_t size, double lower_bound, double upper_bound);
 
-	
 	void print_vector(const std::vector<double>& vec);
 	void print_population();
 };
