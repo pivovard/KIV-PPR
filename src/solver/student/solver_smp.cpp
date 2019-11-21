@@ -1,13 +1,12 @@
 #include "..\solver_smp.h"
 #include "ICA_smp.h"
 #include "Statistics.h"
-
 #include<numeric>
 
 
 HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 	
-	//return S_FALSE;
+	return S_FALSE;
 
 	Statistics::begin(setup, 1);
 	ICA_smp ica(setup);
@@ -17,6 +16,8 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 
 	int i = 0;
 	for (i; i < setup.max_generations; ++i) {
+		if (progress.cancelled) return S_FALSE;
+
 		ica.evolve();
 
 		double cost_n = ica.get_min();
