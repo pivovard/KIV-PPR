@@ -329,16 +329,16 @@ void ICA::calc_fitness_all()
 
 double ICA::calc_fitness_imp(const Imperialist& imp)
 {
-	//without colonies increase cost by 2*xi
-	if (imp.colonies.size() == 0) return imp.imp->fitness + 2 * xi * imp.imp->fitness;
+	//without colonies increase cost
+	if (imp.colonies.size() == 0) return 2*imp.imp->fitness;
 
 	double sum = 0;
 	for (int i = 0; i < imp.colonies.size(); ++i) {
 		sum += imp.colonies[i]->fitness;
 	}
 
-	//total imp cost = imp cost + xi*mean(cost of colonies)
-	return imp.imp->fitness + xi * sum / imp.colonies.size();
+	//total imp cost = imp cost + 1/col_size * mean(cost of colonies)
+	return imp.imp->fitness + sum / (2*imp.colonies.size());
 }
 
 double ICA::calc_distance(const std::vector<double>& vec1, const std::vector<double>& vec2)
