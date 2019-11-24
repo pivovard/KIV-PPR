@@ -18,8 +18,13 @@
 
 class ICA_smp : public ICA {
 private:
-	//concurrency::concurrent_vector<Country> pop;
-	//concurrency::concurrent_vector<Imperialist> imp;
+
+protected:
+	virtual void move_all_colonies(Imperialist& imp) override;
+	virtual void migrate_colonies() override;
+
+	virtual void calc_fitness_all() override;
+	virtual double calc_fitness_imp(const Imperialist& imp) override;
 
 public:
 	ICA_smp(const solver::TSolver_Setup& setup);
@@ -27,11 +32,7 @@ public:
 
 	virtual void gen_population() override;
 	virtual void evolve() override;
-	virtual void move_all_colonies(Imperialist& imp) override;
-	virtual void migrate_colonies() override;
-
-	virtual void calc_fitness_all() override;
-	virtual double calc_fitness_imp(const Imperialist& imp) override;
+	
 	virtual double get_min() override;
 	virtual double get_max() override;
 };

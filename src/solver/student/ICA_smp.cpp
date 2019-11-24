@@ -37,11 +37,11 @@ void ICA_smp::gen_population()
 		sum_C += pop[i].fitness - max_c;
 	}
 
-	std::vector<double> prob; //probability to get colony
+	std::vector<double> prob(n_imp); //probability to get colony
 
 	for (int i = 0; i < n_imp; ++i) {
 		double p_n = std::abs((pop[i].fitness - max_c) / sum_C); //p=|norm.fitness/sum Cn|
-		prob.push_back(p_n);
+		prob[i] = p_n;
 		std::cout << "Imp " << i + 1 << " colonies " << std::round(p_n * (setup.population_size - n_imp)) << std::endl;
 	}
 
@@ -117,12 +117,13 @@ void ICA_smp::migrate_colonies()
 	}, tbb::auto_partitioner());
 
 	//count probability vector p=|NTC/sum NTC |
-	std::vector<double> P;
+	size_t n_imp = imp.size();
+	std::vector<double> P(n_imp);
 
-	for (auto& i : imp) {
+	for (int i = 0; i < n_imp; ++i) {
 		//double p = std::abs((i.total_fitness - max_tc) / sum_tc); //normalized
-		double p = std::abs(i.total_fitness / sum_tc); // not normalized
-		P.push_back(p);
+		double p = std::abs(imp[i].total_fitness / sum_tc); // not normalized
+		P[i] = p;
 	}
 
 	//{colony, imp in, imp out}
@@ -137,8 +138,9 @@ void ICA_smp::migrate_colonies()
 			R = gen_vector(P.size(), 0, 1);
 
 			//D=P-R
-			std::vector<double> D(P.size());
-			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
+			//std::vector<double> D(P.size());
+			//std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
+			std::vector<double> D = vector_sub(P, R);
 
 			auto it = std::min_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);

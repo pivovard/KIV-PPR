@@ -18,7 +18,7 @@ struct Stat
 	short type;
 };
 
-static class Statistics
+class Statistics
 {
 private:
 	static std::vector<Stat> stats;

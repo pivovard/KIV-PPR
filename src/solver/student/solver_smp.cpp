@@ -40,11 +40,6 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	Statistics::end(i);
 	Statistics::print_stat();
 
-	if (setup.population_size == 100) {
-		Statistics::export_stat("smp");
-		Statistics::clear();
-	}
-
 	system("pause");
 	return S_OK;
 }

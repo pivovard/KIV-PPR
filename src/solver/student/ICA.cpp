@@ -55,15 +55,18 @@ void ICA::move_colony(Country& imp, Country& colony)
 	std::vector<double> U = gen_vector(setup.problem_size, 0, 1); //U(0,1)
 
 	//V=imp-col
-	std::vector<double> V(setup.problem_size);
-	std::transform(imp.vec.begin(), imp.vec.end(), colony.vec.begin(), V.begin(), std::minus<double>());
+	//std::vector<double> V(setup.problem_size);
+	//std::transform(imp.vec.begin(), imp.vec.end(), colony.vec.begin(), V.begin(), std::minus<double>());
+	std::vector<double> V = vector_sub(imp.vec, colony.vec);
 
 	//V=V*U
 	//for (auto& v : V) v *= U;
-	std::transform(V.begin(), V.end(), U.begin(), V.begin(), std::multiplies<double>());
+	//std::transform(V.begin(), V.end(), U.begin(), V.begin(), std::multiplies<double>());
+	V = vector_mul(V, U);
 
 	//Xnew=Xold+V*U
-	std::transform(colony.vec.begin(), colony.vec.end(), V.begin(), colony.vec.begin(), std::plus<double>());
+	//std::transform(colony.vec.begin(), colony.vec.end(), V.begin(), colony.vec.begin(), std::plus<double>());
+	colony.vec = vector_add(colony.vec, V);
 
 	//x - U(-gama,gama)
 	//double O = gen_double(-gama, gama); //U(-gama, gama)
@@ -87,12 +90,13 @@ void ICA::migrate_colonies()
 	}
 
 	//count probability vector p=|NTC/sum NTC |
-	std::vector<double> P;
+	size_t n_imp = imp.size();
+	std::vector<double> P(n_imp);
 
-	for (auto& i : imp) {
+	for (int i = 0; i < n_imp; ++i) {
 		//double p = std::abs((i.total_fitness - max_tc) / sum_tc); //normalized
-		double p = std::abs(i.total_fitness / sum_tc); // not normalized
-		P.push_back(p);
+		double p = std::abs(imp[i].total_fitness / sum_tc); // not normalized
+		P[i] = p;
 	}
 	
 	//{colony, imp in, imp out}
@@ -106,8 +110,9 @@ void ICA::migrate_colonies()
 			R = gen_vector(P.size(), 0, 1);
 
 			//D=P-R
-			std::vector<double> D(P.size());
-			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
+			//std::vector<double> D(P.size());
+			//std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
+			std::vector<double> D = vector_sub(P, R);
 			
 			auto it = std::min_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);
@@ -168,7 +173,7 @@ void ICA::do_migration(const std::vector<double>& P, const std::vector<std::vect
 	}
 }
 
-void ICA::do_migration(const std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration)
+void ICA::do_migration(std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration)
 {
 	//migration
 	for (auto& vec : migration) {
@@ -192,8 +197,9 @@ void ICA::do_migration(const std::vector<double>& P, const tbb::concurrent_vecto
 			R = gen_vector(P.size(), 0, 1);
 
 			//D=P-R
-			std::vector<double> D(P.size());
-			std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
+			//std::vector<double> D(P.size());
+			//std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
+			std::vector<double> D = vector_sub(P, R);
 
 			auto it = std::min_element(D.begin(), D.end());
 			_int64 max = std::distance(D.begin(), it);
@@ -215,6 +221,25 @@ void ICA::do_migration(const std::vector<double>& P, const tbb::concurrent_vecto
 			}
 		}
 	}
+}
+
+std::vector<double> ICA::vector_add(std::vector<double>& vec1, std::vector<double>& vec2) {
+	std::vector<double> res(vec1.size());
+	std::transform(vec1.begin(), vec1.end(), vec2.begin(), res.begin(), std::plus<double>());
+	return res;
+}
+
+std::vector<double> ICA::vector_sub(std::vector<double>& vec1, std::vector<double>& vec2) {
+	std::vector<double> res(vec1.size());
+	std::transform(vec1.begin(), vec1.end(), vec2.begin(), res.begin(), std::minus<double>());
+	return res;
+}
+
+std::vector<double> ICA::vector_mul(std::vector<double>& vec1, std::vector<double>& vec2)
+{
+	std::vector<double> res(vec1.size());
+	std::transform(vec1.begin(), vec1.end(), vec2.begin(), res.begin(), std::multiplies<double>());
+	return res;
 }
 
 double ICA::get_min()
@@ -248,11 +273,11 @@ std::vector<double> ICA::gen_vector(size_t size, double lower_bound, double uppe
 {
 	std::uniform_real_distribution<> distr(lower_bound, upper_bound);
 
-	std::vector<double> vec;
+	std::vector<double> vec(size);
 
 	for (int j = 0; j < size; ++j) {
 		double val = distr(eng64);
-		vec.push_back(val);
+		vec[j] = val;
 	}
 
 	return vec;
@@ -288,16 +313,15 @@ void ICA::gen_population()
 		sum_C += pop[i].fitness - max_c;
 	}
 
-	std::vector<double> prob; //probability to get colony
+	std::vector<double> prob(n_imp); //probability to get colony
 
 	for (int i = 0; i < n_imp; ++i) {
 		double p_n = std::abs((pop[i].fitness - max_c) / sum_C); //p=|norm.fitness/sum Cn|
-		prob.push_back(p_n);
+		prob[i] = p_n;
 		std::cout << "Imp " << i + 1 << " colonies " << std::round(p_n * (setup.population_size - n_imp)) << std::endl;
 	}
 
 	//assign colonies - not match number of colonies by the formula
-	//tbb::paralel_for ??
 	std::uniform_real_distribution<> dist; //distrinution (0,1)
 
 	for (int i = n_imp; i < setup.population_size; ++i) {

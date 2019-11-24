@@ -32,6 +32,16 @@ protected:
 	std::mt19937 eng; // seed the generator
 	static thread_local std::mt19937_64 eng64;
 	
+	virtual void move_all_colonies(Imperialist& imp);
+	virtual void migrate_colonies();
+
+	virtual void calc_fitness_all();
+	virtual double calc_fitness_imp(const Imperialist& imp);
+	virtual double calc_fitness(const std::vector<double>& vec);
+
+	void move_colony(Country& imp, Country& colony);
+	void do_migration(const std::vector<double>& P, const std::vector<std::vector<_int64>>& migration);
+	void do_migration(std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration);
 
 public:
 
@@ -40,21 +50,16 @@ public:
 
 	virtual void gen_population();
 	virtual void evolve();
-	virtual void move_all_colonies(Imperialist& imp);
-	virtual void migrate_colonies();
 
-	virtual void calc_fitness_all();
-	virtual double calc_fitness_imp(const Imperialist& imp);
+	virtual std::vector<double> vector_add(std::vector<double>& vec1, std::vector<double>& vec2);
+	virtual std::vector<double> vector_sub(std::vector<double>& vec1, std::vector<double>& vec2);
+	virtual std::vector<double> vector_mul(std::vector<double>& vec1, std::vector<double>& vec2);
 
 	virtual double get_min();
 	virtual double get_max();
-
-	void move_colony(Country& imp, Country& colony);
-	void do_migration(const std::vector<double>& P, const std::vector<std::vector<_int64>>& migration);
-	void do_migration(const std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration);
 	
-	double calc_fitness(const std::vector<double>& vec);
 	double calc_distance(const std::vector<double>& vec1, const std::vector<double>& vec2);
+
 	void write_solution();
 
 	double gen_double(double lower_bound, double upper_bound);
