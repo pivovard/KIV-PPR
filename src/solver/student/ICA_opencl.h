@@ -5,6 +5,7 @@
 
 #include <fstream>
 
+
 class ICA_opencl : public ICA_smp {
 private:
 	//init flag

@@ -3,46 +3,53 @@
 #include "Statistics.h"
 
 
-HRESULT solve_opencl(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
-	
+HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& progress) {
+
 	//return S_FALSE;
 
-	Statistics::begin(setup, 2);
-	ICA_opencl ica(setup);
+	try {
+		ICA_opencl ica(setup);
 
-	ica.gen_population();
-	ica.print_population();
+		Statistics::begin(setup, 2);
 
-	int i = 0;
-	for (i; i < setup.max_generations; ++i) {
-		if (progress.cancelled) return S_FALSE;
+		ica.gen_population();
+		ica.print_population();
 
-		ica.evolve();
+		int i = 0;
+		for (i; i < setup.max_generations; ++i) {
+			if (progress.cancelled) return S_FALSE;
 
-		double cost_n = ica.get_min();
-		Statistics::iteration(cost_n);
+			ica.evolve();
 
-		//end if convergence stopped
-		size_t n = 10;
-		double eps = 0.0000000001;
-		if (i > n) {
-			std::vector<double> vec = Statistics::get_last_n(n);
-			double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
+			double cost_n = ica.get_min();
+			Statistics::iteration(cost_n);
 
-			if (std::abs(sum / n - vec.back()) < eps) break;
+			//end if convergence stopped
+			size_t n = 10;
+			double eps = 0.0000000001;
+			if (i > n) {
+				std::vector<double> vec = Statistics::get_last_n(n);
+				double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
+
+				if (std::abs(sum / n - vec.back()) < eps) break;
+			}
+		}
+
+		ica.write_solution();
+		ica.print_population();
+
+		Statistics::end(i);
+		Statistics::print_stat();
+
+		if (setup.population_size == 100) {
+			system("pause");
+			//Statistics::export_stat("opencl");
+			//Statistics::clear();
 		}
 	}
-
-	ica.write_solution();
-	ica.print_population();
-
-	Statistics::end(i);
-	Statistics::print_stat();
-
-	if (setup.population_size == 100) {
-		system("pause");
-		//Statistics::export_stat("opencl");
-		//Statistics::clear();
+	catch (std::exception & ex) {
+		std::cout << ex.what() << std::endl;
+		return E_FAIL;
 	}
 
 	system("pause");

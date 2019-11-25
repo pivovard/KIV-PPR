@@ -18,14 +18,14 @@ ICA_opencl::ICA_opencl(const solver::TSolver_Setup& setup) : ICA_smp(setup) {
 void ICA_opencl::init()
 {
 	cl_int err = 0;
-
+	
 	//get platforms
 	std::vector<cl::Platform> platformList;
 	cl::Platform::get(&platformList);
 	std::cout << "Platforms: " << platformList.size() << std::endl;
 
 	if (platformList.size() < 1) {
-		std::cout << "ERROR: No suitable platform!" << std::endl;
+		throw std::exception("ERROR: No suitable platform!");
 	}
 
 	//get vendor of first platform
@@ -39,7 +39,7 @@ void ICA_opencl::init()
 	//get context
 	cl::Context context(CL_DEVICE_TYPE_GPU, cprops, NULL, NULL, &err);
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Get context failed!" << std::endl;
+		throw std::exception("ERROR: Get context failed!");
 	}
 
 	ICA_opencl::context = context;
@@ -50,7 +50,7 @@ void ICA_opencl::init()
 	std::cout << "Devices: " << devices.size() << std::endl;
 
 	if (devices.size() < 1) {
-		std::cout << "ERROR: No suitable device!" << std::endl;
+		throw std::exception("ERROR: No suitable device!");
 	}
 
 	//load program
@@ -61,7 +61,7 @@ void ICA_opencl::init()
 	cl::Program program(context, source);
 	err = program.build(devices);
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to load or build program!" << std::endl;
+		throw std::exception("ERROR: Failed to load or build program!");
 	}
 
 	ICA_opencl::device = devices[0];
@@ -102,6 +102,11 @@ double ICA_opencl::calc_fitness(const std::vector<double>& vec)
 
 void ICA_opencl::move_colony(Country& imp, Country& colony)
 {
+	if (setup.problem_size < cl_size) {
+		ICA::move_colony(imp, colony);
+		return;
+	}
+
 	cl_int err = 0;
 	const size_t size = setup.problem_size;
 	const size_t local_ws = 32; // Number of work-items per workgroup
@@ -110,7 +115,7 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 
 	cl::Kernel kernel(program, "move_colony", &err);
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to load kernel!" << std::endl;
+		throw std::exception("ERROR: Failed to load kernel!");
 	}
 
 	std::vector<double> U = gen_vector(setup.problem_size, 0, 1); //U(0,1)
@@ -120,7 +125,7 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	cl::Buffer r(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), U.data(), &err);
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to create buffer!" << std::endl;
+		throw std::exception("ERROR: Failed to create buffer!");
 	}
 
 	err = kernel.setArg(0, v1);
@@ -128,21 +133,21 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	err |= kernel.setArg(2, r);
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to set arguments!" << std::endl;
+		throw std::exception("ERROR: Failed to set arguments!");
 	}
 
 	cl::Event event;
 	err = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(global_ws), cl::NDRange(local_ws), NULL, &event);
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to enqueue task!" << std::endl;
+		throw std::exception("ERROR: Failed to enqueue task!");
 	}
 
 	event.wait();
 	err = queue.enqueueReadBuffer(r, CL_TRUE, 0, size * sizeof(double), colony.vec.data());
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to read buffer!" << std::endl;
+		throw std::exception("ERROR: Failed to read buffer!");
 	}
 }
 
@@ -156,7 +161,7 @@ std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& v
 
 	cl::Kernel kernel(program, op.c_str(), &err);
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to load kernel!" << std::endl;
+		throw std::exception("ERROR: Failed to load kernel!");
 	}
 
 	std::vector<double> res(size);
@@ -166,7 +171,7 @@ std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& v
 	cl::Buffer r(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), res.data(), &err);
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to create buffer!" << std::endl;
+		throw std::exception("ERROR: Failed to create buffer!");
 	}
 
 	err = kernel.setArg(0, v1);
@@ -174,21 +179,21 @@ std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& v
 	err |= kernel.setArg(2, r);
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to set arguments!" << std::endl;
+		throw std::exception("ERROR: Failed to set arguments!");
 	}
 
 	cl::Event event;
 	err = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(global_ws), cl::NDRange(local_ws), NULL, &event);
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to enqueue task!" << std::endl;
+		throw std::exception("ERROR: Failed to enqueue task!");
 	}
 
 	event.wait();
 	err = queue.enqueueReadBuffer(r, CL_TRUE, 0, size * sizeof(double), res.data());
 
 	if (err != CL_SUCCESS) {
-		std::cout << "ERROR: Failed to read buffer!" << std::endl;
+		throw std::exception("ERROR: Failed to read buffer!");
 	}
 
 	return res;
