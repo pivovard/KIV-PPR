@@ -85,9 +85,11 @@ void ICA_smp::move_all_colonies(Imperialist& imp)
 	tbb::parallel_for(size_t(0), imp.colonies.size(), [&](size_t r) {
 		move_colony(*imp.imp, *imp.colonies[r]);
 
-		//calc new cost - already at move_colony
-		//imp.colonies[i]->fitness = calc_fitness(imp.colonies[i]->vec);
+		
+	}, tbb::auto_partitioner());
 
+	for (int r = 0; r < imp.colonies.size(); ++r) {
+		//critical section, must be serial (mutex over imperialist would make it serial either)
 		//if colonies cost function < than imperialists, switch
 		if (imp.colonies[r]->fitness < imp.imp->fitness) {
 			auto* tmp = imp.colonies[r];
@@ -96,7 +98,7 @@ void ICA_smp::move_all_colonies(Imperialist& imp)
 			imp.imp = tmp;
 			imp.imp->imperialist = true;
 		}
-	}, tbb::auto_partitioner());
+	}
 }
 
 void ICA_smp::migrate_colonies()

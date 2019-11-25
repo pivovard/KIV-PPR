@@ -6,7 +6,7 @@
 
 HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 	
-	return S_FALSE;
+	//return S_FALSE;
 
 	Statistics::begin(setup, 1);
 	ICA_smp ica(setup);
@@ -40,6 +40,6 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	Statistics::end(i);
 	Statistics::print_stat();
 
-	system("pause");
+	//system("pause");
 	return S_OK;
 }

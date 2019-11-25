@@ -42,7 +42,7 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		Statistics::print_stat();
 
 		if (setup.population_size == 100) {
-			system("pause");
+			//system("pause");
 			//Statistics::export_stat("opencl");
 			//Statistics::clear();
 		}
@@ -52,6 +52,6 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		return E_FAIL;
 	}
 
-	system("pause");
+	//system("pause");
 	return S_OK;
 }
