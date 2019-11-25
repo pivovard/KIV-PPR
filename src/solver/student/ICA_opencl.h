@@ -17,7 +17,7 @@ private:
 	static cl::CommandQueue queue;
 
 	//limit to run vector calc on GPU
-	size_t cl_size = 30;
+	size_t cl_size = 100000;
 
 	//init OpenCL
 	static void init();
@@ -27,6 +27,7 @@ private:
 
 protected:
 	virtual double calc_fitness(const std::vector<double>& vec) override;
+	virtual void move_colony(Country& imp, Country& colony) override;
 
 public:
 	ICA_opencl(const solver::TSolver_Setup& setup);

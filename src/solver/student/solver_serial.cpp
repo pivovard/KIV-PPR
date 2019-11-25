@@ -39,6 +39,6 @@ HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 	Statistics::end(i);
 	Statistics::print_stat();
 
-	system("pause");
+	//system("pause");
 	return S_OK;
 }

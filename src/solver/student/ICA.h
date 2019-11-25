@@ -39,7 +39,7 @@ protected:
 	virtual double calc_fitness_imp(const Imperialist& imp);
 	virtual double calc_fitness(const std::vector<double>& vec);
 
-	void move_colony(Country& imp, Country& colony);
+	virtual void move_colony(Country& imp, Country& colony);
 	void do_migration(const std::vector<double>& P, const std::vector<std::vector<_int64>>& migration);
 	void do_migration(std::vector<double>& P, const tbb::concurrent_vector<std::vector<_int64>>& migration);
 

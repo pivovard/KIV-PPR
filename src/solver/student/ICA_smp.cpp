@@ -108,7 +108,6 @@ void ICA_smp::migrate_colonies()
 
 	//count total fitness
 	//may be parallel reduce
-	//for (auto& i : imp) {
 	tbb::parallel_for(size_t(0), imp.size(), [&](size_t r) {
 		double tc = calc_fitness_imp(imp[r]);
 		imp[r].total_fitness = tc;
@@ -129,10 +128,7 @@ void ICA_smp::migrate_colonies()
 	//{colony, imp in, imp out}
 	//{  j,      max,     i   }
 	std::vector<std::vector<_int64>> migration;
-	//for (int i = 0; i < imp.size(); ++i) {
 	tbb::parallel_for(size_t(0), imp.size(), [&](size_t i) {
-		//for (auto* col : imp[i].colonies) {
-		//for (int j = 0; j < imp[i].colonies.size(); ++j) {
 		for (int j = imp[i].colonies.size() - 1; j > -1; --j) {
 			std::vector<double> R;
 			R = gen_vector(P.size(), 0, 1);
@@ -154,15 +150,12 @@ void ICA_smp::migrate_colonies()
 			}
 		}
 	}, tbb::auto_partitioner());
-	//std::cout << migration.size();
+	
 	do_migration(P, migration);
 }
 
 void ICA_smp::calc_fitness_all()
 {
-	/*for (auto& country : pop) {
-		country.fitness = calc_fitness(country.vec);
-	}*/
 	tbb::parallel_for(size_t(0), setup.population_size, [&](size_t r) {
 		pop[r].fitness = calc_fitness(pop[r].vec);
 	}, tbb::auto_partitioner());

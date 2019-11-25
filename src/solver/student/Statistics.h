@@ -3,26 +3,26 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <time.h>
+#include <chrono>
 #include <string>
 #include "../../common/iface/SolverIface.h"
 
 
 struct Stat
 {
-	double time = 0.0;
+	long long time = 0;
 	int generations = 0;
 	std::vector<double> fitness;
-	size_t population_size;
-	size_t problem_size;
-	short type;
+	size_t population_size = 0;
+	size_t problem_size = 0;
+	short type = -1;
 };
 
 class Statistics
 {
 private:
 	static std::vector<Stat> stats;
-	static time_t start_time;
+	static std::chrono::time_point<std::chrono::steady_clock> start_time;
 	static short problem_n;
 
 public:

@@ -100,6 +100,52 @@ double ICA_opencl::calc_fitness(const std::vector<double>& vec)
 	return result;
 }
 
+void ICA_opencl::move_colony(Country& imp, Country& colony)
+{
+	cl_int err = 0;
+	const size_t size = setup.problem_size;
+	const size_t local_ws = 32; // Number of work-items per workgroup
+	// shrRoundUp returns the smallest multiple of local_ws bigger than size
+	const size_t global_ws = shrRoundUp(local_ws, size);
+
+	cl::Kernel kernel(program, "move_colony", &err);
+	if (err != CL_SUCCESS) {
+		std::cout << "ERROR: Failed to load kernel!" << std::endl;
+	}
+
+	std::vector<double> U = gen_vector(setup.problem_size, 0, 1); //U(0,1)
+
+	cl::Buffer v1(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, size * sizeof(double), colony.vec.data(), &err);
+	cl::Buffer v2(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), imp.vec.data(), &err);
+	cl::Buffer r(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), U.data(), &err);
+
+	if (err != CL_SUCCESS) {
+		std::cout << "ERROR: Failed to create buffer!" << std::endl;
+	}
+
+	err = kernel.setArg(0, v1);
+	err |= kernel.setArg(1, v2);
+	err |= kernel.setArg(2, r);
+
+	if (err != CL_SUCCESS) {
+		std::cout << "ERROR: Failed to set arguments!" << std::endl;
+	}
+
+	cl::Event event;
+	err = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(global_ws), cl::NDRange(local_ws), NULL, &event);
+
+	if (err != CL_SUCCESS) {
+		std::cout << "ERROR: Failed to enqueue task!" << std::endl;
+	}
+
+	event.wait();
+	err = queue.enqueueReadBuffer(r, CL_TRUE, 0, size * sizeof(double), colony.vec.data());
+
+	if (err != CL_SUCCESS) {
+		std::cout << "ERROR: Failed to read buffer!" << std::endl;
+	}
+}
+
 std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& vec1, std::vector<double>& vec2)
 {
 	cl_int err = 0;

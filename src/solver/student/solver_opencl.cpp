@@ -7,7 +7,7 @@ HRESULT solve_opencl(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 	
 	//return S_FALSE;
 
-	Statistics::begin(setup, 3);
+	Statistics::begin(setup, 2);
 	ICA_opencl ica(setup);
 
 	ica.gen_population();
@@ -40,8 +40,9 @@ HRESULT solve_opencl(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 	Statistics::print_stat();
 
 	if (setup.population_size == 100) {
-		Statistics::export_stat("opencl");
-		Statistics::clear();
+		system("pause");
+		//Statistics::export_stat("opencl");
+		//Statistics::clear();
 	}
 
 	system("pause");
