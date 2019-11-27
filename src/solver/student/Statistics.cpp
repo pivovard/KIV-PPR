@@ -64,23 +64,17 @@ void Statistics::print_stat()
 	}
 }
 
-void Statistics::export_stat(std::string type)
+void Statistics::export_stat()
 {
 	std::ofstream file;
-	std::ofstream file_csv;
-	std::ofstream file_all;
-	if (problem_n > 0) { //append
-		file.open("results_" + type + ".txt", std::ofstream::out | std::ofstream::app);
-		file_all.open("results_all_" + type + ".txt", std::ofstream::out | std::ofstream::app);
-		file_csv.open("results_" + type + ".csv", std::ofstream::out | std::ofstream::app);
-		file << std::endl;
-		file_all << std::endl;
-		file_csv << std::endl;
+	if (problem_n < 1) { //new
+		file.open("results.csv", std::ofstream::out | std::ofstream::trunc);
+		file << "type problem_size population_size generations fitness time[ms]" << std::endl;
 	}
-	else { //new
-		file.open("results_" + type + ".txt", std::ofstream::out | std::ofstream::trunc);
-		file_all.open("results_all_" + type + ".txt", std::ofstream::out | std::ofstream::trunc);
-		file_csv.open("results_" + type + ".csv", std::ofstream::out | std::ofstream::trunc);
+	else { //append
+		file.open("results.csv", std::ofstream::out | std::ofstream::app);
+		file << std::endl;
+		
 	}
 
 	problem_n++;
@@ -88,33 +82,18 @@ void Statistics::export_stat(std::string type)
 	for (Stat& stat : Statistics::stats) {
 		switch (stat.type) {
 		case 0: 
-			file << "Type: serial";
-			file_all << "Type: serial";
+			file << "serial";
 			break;
 		case 1: 
-			file << "Type: smp";
-			file_all << "Type: smp";
+			file << "smp";
 			break;
 		case 2: 
-			file << "Type: openCL";
-			file_all << "Type: openCL";
+			file << "openCL";
 			break;
 		}
 
-		file << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size
-			<< ", generations: " << stat.generations << ", solution: " << stat.fitness.back() << ", time: " << stat.time << "ms" << std::endl;
-		file_all << ", problem size: " << stat.problem_size << ", population size: " << stat.population_size
-			<< ", generations: " << stat.generations << ", solution: " << stat.fitness.back() << ", time: " << stat.time << "ms" << std::endl;
-
-		file_csv << stat.type << "," << stat.problem_size << "," << stat.population_size << "," << stat.generations << "," << stat.fitness.back() << "," << stat.time <<std::endl;
-
-		for (auto& cost : stat.fitness) {
-			file_all << cost << ",";
-		}
-		file_all << std::endl << std::endl;
+		file << " " << stat.problem_size << " " << stat.population_size << " " << stat.generations << " " << stat.fitness.back() << " " << stat.time << std::endl;
 	}
-
-
 
 	file.close();
 }

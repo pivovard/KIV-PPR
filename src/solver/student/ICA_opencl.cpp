@@ -102,6 +102,12 @@ double ICA_opencl::calc_fitness(const std::vector<double>& vec)
 
 void ICA_opencl::move_colony(Country& imp, Country& colony)
 {
+	//reandom vector - average 1 in 2 generations
+	if (gen_double(0, 1) < 1.0 / (2 * setup.population_size)) {
+		colony.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
+		return;
+	}
+
 	if (setup.problem_size < cl_size) {
 		ICA::move_colony(imp, colony);
 		return;

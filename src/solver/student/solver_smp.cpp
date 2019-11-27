@@ -12,7 +12,7 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	ICA_smp ica(setup);
 
 	ica.gen_population();
-	ica.print_population();
+	//ica.print_population();
 
 	int i = 0;
 	for (i; i < setup.max_generations; ++i) {
@@ -24,8 +24,8 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 		Statistics::iteration(cost_n);
 
 		//end if convergence stopped
-		size_t n = 10;
-		double eps = 0.0000000001;
+		size_t n = 100;
+		double eps = 0.000000001;
 		if (i > n) {
 			std::vector<double> vec = Statistics::get_last_n(n);
 			double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
@@ -35,7 +35,7 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	}
 
 	ica.write_solution();
-	ica.print_population();
+	//ica.print_population();
 
 	Statistics::end(i);
 	Statistics::print_stat();
