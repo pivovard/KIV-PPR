@@ -18,7 +18,7 @@ private:
 	static cl::CommandQueue queue;
 
 	//limit to run vector calc on GPU
-	size_t cl_size = 0;
+	size_t cl_size = 100;
 
 	//init OpenCL - platform, device, context, command queue, program
 	static void init();

@@ -91,6 +91,7 @@ std::vector<double> ICA_opencl::vector_mul(std::vector<double>& vec1, std::vecto
 
 double ICA_opencl::calc_fitness(const std::vector<double>& vec)
 {
+	//return ICA::calc_fitness(vec);
 	const double mShift = -4.0;
 	double result = 0.0;
 	for (size_t i = 0; i < setup.problem_size; i++) {
@@ -107,7 +108,7 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 		colony.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
 		return;
 	}
-
+	
 	if (setup.problem_size < cl_size) {
 		ICA::move_colony(imp, colony);
 		return;
