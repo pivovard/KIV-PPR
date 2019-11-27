@@ -20,19 +20,27 @@ class ICA_smp : public ICA {
 private:
 
 protected:
+	//parallel - move of all colonies of imperialist
 	virtual void move_all_colonies(Imperialist& imp) override;
-	virtual void migrate_colonies() override;
+	//OLD parallel - random migration of colonies based on probability
+	virtual void migrate_colonies_old() override;
 
+	//parallel - calc fitness of all colonies
 	virtual void calc_fitness_all() override;
+	//calc fitness of imperialist - imp cost = imp_cost = imp_cost + 1/col_size * mean(cost_of_colonies) - parallel sum
 	virtual double calc_fitness_imp(const Imperialist& imp) override;
 
 public:
 	ICA_smp(const solver::TSolver_Setup& setup);
 	~ICA_smp() = default;
 
+	//parallel - generates new population
 	virtual void gen_population() override;
+	//algorithm iteration - parallel move colonies
 	virtual void evolve() override;
 	
+	//parallel_reduce for colony with min fitness function
 	virtual double get_min() override;
+	//parallel_reduce for colony with max fitness function
 	virtual double get_max() override;
 };

@@ -5,11 +5,6 @@ ICA_smp::ICA_smp(const solver::TSolver_Setup& setup) : ICA(setup) {}
 void ICA_smp::gen_population()
 {
 	//generate start population
-	/*for (int i = 0; i < setup.population_size; ++i) {
-		Country c;
-		c.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
-		pop.push_back(c);
-	}*/
 	tbb::parallel_for(tbb::blocked_range<size_t>(0, setup.population_size), [&](const auto& r) {
 		Country c;
 		c.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
@@ -42,15 +37,11 @@ void ICA_smp::gen_population()
 	for (int i = 0; i < n_imp; ++i) {
 		double p_n = std::abs((pop[i].fitness - max_c) / sum_C); //p=|norm.fitness/sum Cn|
 		prob[i] = p_n;
-		std::cout << "Imp " << i + 1 << " colonies " << std::round(p_n * (setup.population_size - n_imp)) << std::endl;
+		//std::cout << "Imp " << i + 1 << " colonies " << std::round(p_n * (setup.population_size - n_imp)) << std::endl;
 	}
 
-	//assign colonies - not match number of colonies by the formula
-	//tbb::paralel_for ??
 	std::uniform_real_distribution<> dist; //distrinution (0,1)
 
-	//for (int i = n_imp; i < setup.population_size; ++i) {
-	//tbb::parallel_for(tbb::blocked_range<size_t>(n_imp, setup.population_size), [&](const auto& r) {
 	tbb::parallel_for(size_t(n_imp), setup.population_size, [&](size_t r) {
 		double roll = dist(eng64);
 		double tmp = 0;
@@ -81,7 +72,6 @@ void ICA_smp::evolve()
 
 void ICA_smp::move_all_colonies(Imperialist& imp)
 {
-	//for (int i = 0; i < imp.colonies.size(); ++i) {
 	tbb::parallel_for(size_t(0), imp.colonies.size(), [&](size_t r) {
 		move_colony(*imp.imp, *imp.colonies[r]);
 
@@ -101,7 +91,7 @@ void ICA_smp::move_all_colonies(Imperialist& imp)
 	}
 }
 
-void ICA_smp::migrate_colonies()
+void ICA_smp::migrate_colonies_old()
 {
 	//double max_tc = DBL_MIN;
 	double max_tc = get_max();
@@ -136,8 +126,6 @@ void ICA_smp::migrate_colonies()
 			R = gen_vector(P.size(), 0, 1);
 
 			//D=P-R
-			//std::vector<double> D(P.size());
-			//std::transform(P.begin(), P.end(), R.begin(), D.begin(), std::minus<double>());
 			std::vector<double> D = vector_sub(P, R);
 
 			auto it = std::min_element(D.begin(), D.end());
@@ -145,8 +133,6 @@ void ICA_smp::migrate_colonies()
 
 			//migration
 			if (max != i) {
-				//imp[max].colonies.push_back(imp[i].colonies[j]);
-				//imp[i].colonies.erase(imp[i].colonies.begin()+j);
 				tbb::mutex::scoped_lock lock(mutex);
 				migration.push_back({ j, max, _int64(i) });
 			}

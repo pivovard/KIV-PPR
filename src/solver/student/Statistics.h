@@ -32,6 +32,6 @@ public:
 	static void end(int gen);
 	static void clear();
 	static void print_stat();
-	static void export_stat(std::string type);
+	static void export_stat();
 };
 
