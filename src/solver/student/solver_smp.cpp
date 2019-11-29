@@ -6,7 +6,7 @@
 
 HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 	
-	//return S_FALSE;
+	return S_FALSE;
 
 	Statistics::begin(setup, 1);
 	ICA_smp ica(setup);
@@ -15,6 +15,8 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	//ica.print_population();
 
 	int i = 0;
+	size_t n = 100;
+	double eps = 0.000000001;
 	for (i; i < setup.max_generations; ++i) {
 		if (progress.cancelled) return S_FALSE;
 
@@ -24,8 +26,6 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 		Statistics::iteration(cost_n);
 
 		//end if convergence stopped
-		size_t n = 100;
-		double eps = 0.000000001;
 		if (i > n) {
 			std::vector<double> vec = Statistics::get_last_n(n);
 			double sum = std::accumulate(vec.begin(), vec.end(), 0.0);

@@ -1,8 +1,9 @@
 #pragma once
 
 #include "ICA_smp.h"
-#include <CL/cl.hpp>
+#include "kernel.h"
 
+#include <CL/cl.hpp>
 #include <fstream>
 
 
@@ -18,7 +19,7 @@ private:
 	static cl::CommandQueue queue;
 
 	//limit to run vector calc on GPU
-	size_t cl_size = 100;
+	size_t cl_size = 0;
 
 	//init OpenCL - platform, device, context, command queue, program
 	static void init();
@@ -31,8 +32,7 @@ private:
 protected:
 	//calc fitness of colony
 	virtual double calc_fitness(const std::vector<double>& vec) override;
-	//move colony towards to imperialist - calc on GPU
-	virtual void move_colony(Country& imp, Country& colony) override;
+	
 
 public:
 	ICA_opencl(const solver::TSolver_Setup& setup);
@@ -44,4 +44,7 @@ public:
 	virtual std::vector<double> vector_sub(std::vector<double>& vec1, std::vector<double>& vec2) override;
 	//multiplies 2 vectors
 	virtual std::vector<double> vector_mul(std::vector<double>& vec1, std::vector<double>& vec2) override;
+
+	//move colony towards to imperialist - calc on GPU
+	virtual void move_colony(Country& imp, Country& colony) override;
 };

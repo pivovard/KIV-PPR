@@ -54,8 +54,8 @@ void ICA_opencl::init()
 	}
 
 	//load program
-	std::ifstream file("kernel.cl");
-	std::string prog(std::istreambuf_iterator<char>(file), (std::istreambuf_iterator<char>()));
+	//std::ifstream file("kernel.cl");
+	//std::string prog(std::istreambuf_iterator<char>(file), (std::istreambuf_iterator<char>()));
 	cl::Program::Sources source(1, std::make_pair(prog.c_str(), prog.length() + 1));
 
 	cl::Program program(context, source);
@@ -91,7 +91,7 @@ std::vector<double> ICA_opencl::vector_mul(std::vector<double>& vec1, std::vecto
 
 double ICA_opencl::calc_fitness(const std::vector<double>& vec)
 {
-	//return ICA::calc_fitness(vec);
+	return ICA::calc_fitness(vec);
 	const double mShift = -4.0;
 	double result = 0.0;
 	for (size_t i = 0; i < setup.problem_size; i++) {
@@ -106,6 +106,7 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	//reandom vector - average 1 in 2 generations
 	if (gen_double(0, 1) < 1.0 / (2 * setup.population_size)) {
 		colony.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
+		colony.fitness = calc_fitness(colony.vec);
 		return;
 	}
 	
@@ -126,10 +127,12 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	}
 
 	std::vector<double> U = gen_vector(setup.problem_size, 0, 1); //U(0,1)
+	std::vector<double> res(size);
 
-	cl::Buffer v1(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, size * sizeof(double), colony.vec.data(), &err);
-	cl::Buffer v2(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), imp.vec.data(), &err);
-	cl::Buffer r(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), U.data(), &err);
+	cl::Buffer v1(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), colony.vec.data(), &err);
+	cl::Buffer v2(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), imp.vec.data(), &err);
+	cl::Buffer u(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), U.data(), &err);
+	cl::Buffer r(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), res.data(), &err);
 
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to create buffer!");
@@ -137,7 +140,8 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 
 	err = kernel.setArg(0, v1);
 	err |= kernel.setArg(1, v2);
-	err |= kernel.setArg(2, r);
+	err |= kernel.setArg(2, u);
+	err |= kernel.setArg(3, r);
 
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to set arguments!");
@@ -151,11 +155,14 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	}
 
 	event.wait();
-	err = queue.enqueueReadBuffer(r, CL_TRUE, 0, size * sizeof(double), colony.vec.data());
+	err = queue.enqueueReadBuffer(r, CL_TRUE, 0, size * sizeof(double), res.data());
 
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to read buffer!");
 	}
+
+	std::copy(res.begin(), res.end(), colony.vec.begin());
+	colony.fitness = calc_fitness(colony.vec);
 }
 
 std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& vec1, std::vector<double>& vec2)
@@ -173,9 +180,9 @@ std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& v
 
 	std::vector<double> res(size);
 
-	cl::Buffer v1(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), vec1.data(), &err);
-	cl::Buffer v2(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), vec2.data(), &err);
-	cl::Buffer r(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(double), res.data(), &err);
+	cl::Buffer v1(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), vec1.data(), &err);
+	cl::Buffer v2(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), vec2.data(), &err);
+	cl::Buffer r(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), res.data(), &err);
 
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to create buffer!");

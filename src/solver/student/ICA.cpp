@@ -8,10 +8,10 @@ ICA::ICA(const solver::TSolver_Setup& setup) : setup(setup)
 	eng = std::mt19937(rd());
 	eng64 = std::mt19937_64(rd());
 
-	std::cout << "Problem size:\t" << setup.problem_size << std::endl;
+	/*std::cout << "Problem size:\t" << setup.problem_size << std::endl;
 	std::cout << "Population size:\t" << setup.population_size << std::endl;
 	std::cout << "Upper bound:\t" << *setup.upper_bound << std::endl;
-	std::cout << "Lower bound:\t" << *setup.lower_bound << std::endl;
+	std::cout << "Lower bound:\t" << *setup.lower_bound << std::endl;*/
 }
 
 
@@ -56,14 +56,14 @@ void ICA::move_colony(Country& imp, Country& colony)
 		V = vector_mul(V, U);
 		//Xnew=Xold+V*U
 		colony.vec = vector_add(colony.vec, V);
-
-		//count new fitness
-		colony.fitness = calc_fitness(colony.vec);
 	}
 	//reandom vector - average 1 in 2 generations
 	else {
 		colony.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
 	}
+
+	//count new fitness
+	colony.fitness = calc_fitness(colony.vec);
 }
 
 void ICA::migrate_colonies()

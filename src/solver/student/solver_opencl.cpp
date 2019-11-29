@@ -16,6 +16,8 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		//ica.print_population();
 
 		int i = 0;
+		size_t n = 100;
+		double eps = 0.000000001;
 		for (i; i < setup.max_generations; ++i) {
 			if (progress.cancelled) return S_FALSE;
 
@@ -23,10 +25,8 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 
 			double cost_n = ica.get_min();
 			Statistics::iteration(cost_n);
-
+			
 			//end if convergence stopped
-			size_t n = 100;
-			double eps = 0.000000001;
 			if (i > n) {
 				std::vector<double> vec = Statistics::get_last_n(n);
 				double sum = std::accumulate(vec.begin(), vec.end(), 0.0);
@@ -44,7 +44,7 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		if (setup.population_size == 100) {
 			Statistics::export_stat();
 			Statistics::clear();
-			//system("pause");
+			system("pause");
 		}
 	}
 	catch (std::exception & ex) {
