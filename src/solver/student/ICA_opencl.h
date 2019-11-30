@@ -32,7 +32,8 @@ private:
 protected:
 	//calc fitness of colony
 	virtual double calc_fitness(const std::vector<double>& vec) override;
-	
+	//move colony towards to imperialist - calc on GPU
+	virtual void move_colony(Country& imp, Country& colony) override;
 
 public:
 	ICA_opencl(const solver::TSolver_Setup& setup);
@@ -45,6 +46,4 @@ public:
 	//multiplies 2 vectors
 	virtual std::vector<double> vector_mul(std::vector<double>& vec1, std::vector<double>& vec2) override;
 
-	//move colony towards to imperialist - calc on GPU
-	virtual void move_colony(Country& imp, Country& colony) override;
 };

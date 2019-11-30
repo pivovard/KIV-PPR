@@ -39,12 +39,11 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		//ica.print_population();
 
 		Statistics::end(i);
-		Statistics::print_stat();
+		//Statistics::print_stat();
 
 		if (setup.population_size == 100) {
 			Statistics::export_stat();
 			Statistics::clear();
-			system("pause");
 		}
 	}
 	catch (std::exception & ex) {

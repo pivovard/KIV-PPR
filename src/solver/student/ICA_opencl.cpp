@@ -22,7 +22,7 @@ void ICA_opencl::init()
 	//get platforms
 	std::vector<cl::Platform> platformList;
 	cl::Platform::get(&platformList);
-	std::cout << "Platforms: " << platformList.size() << std::endl;
+	//std::cout << "Platforms: " << platformList.size() << std::endl;
 
 	if (platformList.size() < 1) {
 		throw std::exception("ERROR: No suitable platform!");
@@ -31,7 +31,7 @@ void ICA_opencl::init()
 	//get vendor of first platform
 	std::string platformVendor;
 	platformList[0].getInfo((cl_platform_info)CL_PLATFORM_VENDOR, &platformVendor);
-	std::cout << "First platform is: " << platformVendor << std::endl;
+	//std::cout << "First platform is: " << platformVendor << std::endl;
 
 	ICA_opencl::platform = platformList[0];
 
@@ -47,7 +47,7 @@ void ICA_opencl::init()
 	//get devices
 	std::vector<cl::Device> devices;
 	devices = context.getInfo<CL_CONTEXT_DEVICES>();
-	std::cout << "Devices: " << devices.size() << std::endl;
+	//std::cout << "Devices: " << devices.size() << std::endl;
 
 	if (devices.size() < 1) {
 		throw std::exception("ERROR: No suitable device!");
@@ -92,6 +92,7 @@ std::vector<double> ICA_opencl::vector_mul(std::vector<double>& vec1, std::vecto
 double ICA_opencl::calc_fitness(const std::vector<double>& vec)
 {
 	return ICA::calc_fitness(vec);
+	//for schwefel only - couldn't find where is set problem number at setup
 	const double mShift = -4.0;
 	double result = 0.0;
 	for (size_t i = 0; i < setup.problem_size; i++) {
