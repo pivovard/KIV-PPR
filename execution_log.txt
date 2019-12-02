@@ -1,0 +1,13 @@
+Exit code: 0xc0000005
+Exit string: The instruction at 0x%p referenced memory at 0x%p. The memory could not be %s.
+
+Execution time: 174:22.135652 [min:sec]
+Kernel time: 143:16.390625 [min:sec]
+User time: 78:55.718750 [min:sec]
+Time limit exceeded: no
+
+Peak memory used: 168720 kB
+Page fault count: 36937
+
+Excessive files count: 0
+Excessive files size: 0 kB
