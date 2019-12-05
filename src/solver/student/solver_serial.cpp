@@ -5,7 +5,7 @@
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 
-	//return S_FALSE;
+	return S_FALSE;
 
 	Statistics::begin(setup, 0);
 	ICA ica(setup);

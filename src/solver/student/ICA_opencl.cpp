@@ -6,6 +6,7 @@ cl::Context ICA_opencl::context;
 cl::Device ICA_opencl::device;
 cl::Program ICA_opencl::program;
 cl::CommandQueue ICA_opencl::queue;
+cl::Kernel ICA_opencl::kernel;
 
 ICA_opencl::ICA_opencl(const solver::TSolver_Setup& setup) : ICA_smp(setup) {
 	//init opencl
@@ -22,7 +23,7 @@ void ICA_opencl::init()
 	//get platforms
 	std::vector<cl::Platform> platformList;
 	cl::Platform::get(&platformList);
-	//std::cout << "Platforms: " << platformList.size() << std::endl;
+	std::cout << "Platforms: " << platformList.size() << std::endl;
 
 	if (platformList.size() < 1) {
 		throw std::exception("ERROR: No suitable platform!");
@@ -30,12 +31,14 @@ void ICA_opencl::init()
 
 	//get vendor of first platform
 	std::string platformVendor;
-	platformList[0].getInfo((cl_platform_info)CL_PLATFORM_VENDOR, &platformVendor);
-	//std::cout << "First platform is: " << platformVendor << std::endl;
+	for (int i = 0; i < platformList.size(); ++i) {
+		platformList[i].getInfo((cl_platform_info)CL_PLATFORM_VENDOR, &platformVendor);
+		std::cout << "Platform " << i << " is: " << platformVendor << std::endl;
+	}
 
-	ICA_opencl::platform = platformList[0];
+	ICA_opencl::platform = platformList[1];
 
-	cl_context_properties cprops[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platformList[0])(), 0 };
+	cl_context_properties cprops[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(ICA_opencl::platform)(), 0 };
 	//get context
 	cl::Context context(CL_DEVICE_TYPE_GPU, cprops, NULL, NULL, &err);
 	if (err != CL_SUCCESS) {
@@ -47,21 +50,34 @@ void ICA_opencl::init()
 	//get devices
 	std::vector<cl::Device> devices;
 	devices = context.getInfo<CL_CONTEXT_DEVICES>();
-	//std::cout << "Devices: " << devices.size() << std::endl;
+	std::cout << "Devices: " << devices.size() << std::endl;
 
 	if (devices.size() < 1) {
 		throw std::exception("ERROR: No suitable device!");
 	}
 
+	//get device name
+	std::string deviceName;
+	devices[0].getInfo((cl_device_info)CL_DEVICE_NAME, &deviceName);
+	std::cout << "Device name is: " << deviceName << std::endl;
+
 	//load program
 	//std::ifstream file("kernel.cl");
 	//std::string prog(std::istreambuf_iterator<char>(file), (std::istreambuf_iterator<char>()));
-	cl::Program::Sources source(1, std::make_pair(prog.c_str(), prog.length() + 1));
+	//cl::Program::Sources source(1, std::make_pair(prog.c_str(), prog.length() + 1));
+	cl::string source(prog.c_str());
 
-	cl::Program program(context, source);
+	cl::Program program(context, source, &err);
+	if (err != CL_SUCCESS) {
+		throw std::exception("ERROR: Failed to load program!");
+	}
+
 	err = program.build(devices);
 	if (err != CL_SUCCESS) {
-		throw std::exception("ERROR: Failed to load or build program!");
+		std::string buildInfo;
+		program.getBuildInfo(devices[0],CL_PROGRAM_BUILD_LOG, &buildInfo);
+		std::cout << buildInfo << std::endl;
+		throw std::exception("ERROR: Failed to build program!");
 	}
 
 	ICA_opencl::device = devices[0];
@@ -69,6 +85,11 @@ void ICA_opencl::init()
 
 	cl::CommandQueue queue(ICA_opencl::context, ICA_opencl::device, 0, &err);
 	ICA_opencl::queue = queue;
+
+	kernel = cl::Kernel(program, "move_colony", &err);
+	if (err != CL_SUCCESS) {
+		throw std::exception("ERROR: Failed to load kernel!");
+	}
 }
 
 std::vector<double> ICA_opencl::vector_add(std::vector<double>& vec1, std::vector<double>& vec2)
@@ -122,10 +143,10 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	// shrRoundUp returns the smallest multiple of local_ws bigger than size
 	const size_t global_ws = shrRoundUp(local_ws, size);
 
-	cl::Kernel kernel(program, "move_colony", &err);
+	/*cl::Kernel kernel(program, "move_colony", &err);
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to load kernel!");
-	}
+	}*/
 
 	std::vector<double> U = gen_vector(setup.problem_size, 0, 1); //U(0,1)
 	std::vector<double> res(size);
@@ -134,6 +155,13 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	cl::Buffer v2(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), imp.vec.data(), &err);
 	cl::Buffer u(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), U.data(), &err);
 	cl::Buffer r(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), res.data(), &err);
+	/*cl_mem v1 = clCreateBuffer(context.get(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), colony.vec.data(), &err);
+	cl_mem v2 = clCreateBuffer(context.get(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), imp.vec.data(), &err);
+	cl_mem u = clCreateBuffer(context.get(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), U.data(), &err);
+	cl_mem r = clCreateBuffer(context.get(), CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), res.data(), &err);*/
+
+
+
 
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to create buffer!");
@@ -156,7 +184,12 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	}
 
 	event.wait();
+	queue.finish();
 	err = queue.enqueueReadBuffer(r, CL_TRUE, 0, size * sizeof(double), res.data());
+	//err = clEnqueueReadBuffer(queue.get(), r, CL_TRUE, 0, size * sizeof(double), res.data(), 0, NULL, NULL);
+	
+	queue.finish();
+	//print_vector(res);
 
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to read buffer!");
@@ -164,6 +197,13 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 
 	std::copy(res.begin(), res.end(), colony.vec.begin());
 	colony.fitness = calc_fitness(colony.vec);
+
+	queue.flush();
+	/*clReleaseMemObject(v1);
+	clReleaseMemObject(v2);
+	clReleaseMemObject(u);
+	clReleaseMemObject(r);*/
+	
 }
 
 std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& vec1, std::vector<double>& vec2)

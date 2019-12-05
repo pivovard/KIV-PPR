@@ -3,7 +3,9 @@
 #include "ICA_smp.h"
 #include "kernel.h"
 
-#include <CL/cl.hpp>
+#define CL_HPP_TARGET_OPENCL_VERSION 200;
+//#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
+#include <CL/cl2.hpp>
 #include <fstream>
 
 
@@ -17,6 +19,7 @@ private:
 	static cl::Device device;
 	static cl::Program program;
 	static cl::CommandQueue queue;
+	static cl::Kernel kernel;
 
 	//limit to run vector calc on GPU
 	size_t cl_size = 0;
