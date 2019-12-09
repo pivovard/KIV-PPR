@@ -6,11 +6,10 @@
 HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& progress) {
 
 	//return S_FALSE;
-	if (setup.population_size == 100) system("pause");
 
 	try {
 		ICA_opencl ica(setup);
-
+		
 		Statistics::begin(setup, 2);
 
 		ica.gen_population();
@@ -19,9 +18,9 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		int i = 0;
 		size_t n = 50;
 		double eps = 0.000000001;
-		for (i; i < setup.max_generations; ++i) {
+		for (i; i < 5; ++i) {
 			if (progress.cancelled) return S_FALSE;
-
+			
 			ica.evolve();
 
 			double cost_n = ica.get_min();
@@ -40,9 +39,11 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		//ica.print_population();
 
 		Statistics::end(i);
-		//Statistics::print_stat();
+		Statistics::print_stat();
 
 		if (setup.population_size == 100) {
+			ica.finalize();
+
 			Statistics::export_stat();
 			Statistics::clear();
 		}

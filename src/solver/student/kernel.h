@@ -3,7 +3,6 @@
 #include<string>
 
 const std::string prog = "\
-//#pragma OPENCL EXTENSION cl_khr_fp64 : enable	\
 __kernel void vector_add(__global const double* v1, __global const double* v2, __global double* r) {	\
 	int i = get_global_id(0);	\
 	r[i] = v1[i] + v2[i];		\
