@@ -3,9 +3,7 @@
 #include "ICA_smp.h"
 #include "kernel.h"
 
-//#define CL_HPP_TARGET_OPENCL_VERSION 200;
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
-#define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 #include <fstream>
 

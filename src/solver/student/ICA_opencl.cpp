@@ -36,9 +36,9 @@ void ICA_opencl::init()
 		std::cout << "Platform " << i << " is: " << platformVendor << std::endl;
 	}
 
-	//ICA_opencl::platform = platformList[1];
+	//ICA_opencl::platform = platformList[0];
 
-	cl_context_properties cprops[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platformList[1])(), 0 };
+	cl_context_properties cprops[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platformList[0])(), 0 };
 	//get context
 	ICA_opencl::context = cl::Context(CL_DEVICE_TYPE_GPU, cprops, NULL, NULL, &err);
 	if (err != CL_SUCCESS) {
@@ -157,10 +157,6 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	cl::Buffer v2(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), imp.vec.data(), &err);
 	cl::Buffer u(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), U.data(), &err);
 	cl::Buffer r(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), res.data(), &err);
-	/*cl_mem v1 = clCreateBuffer(context.get(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), colony.vec.data(), &err);
-	cl_mem v2 = clCreateBuffer(context.get(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), imp.vec.data(), &err);
-	cl_mem u = clCreateBuffer(context.get(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), U.data(), &err);
-	cl_mem r = clCreateBuffer(context.get(), CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, size * sizeof(double), res.data(), &err);*/
 
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to create buffer!");
@@ -177,7 +173,6 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 
 	cl::Event event;
 	err = queue.enqueueNDRangeKernel(kernel, cl::NullRange, cl::NDRange(global_ws), cl::NDRange(local_ws), NULL, &event);
-
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to enqueue task!");
 	}
@@ -186,21 +181,14 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	queue.flush();
 
 	err = queue.enqueueReadBuffer(r, CL_TRUE, 0, size * sizeof(double), res.data());
-	//err = clEnqueueReadBuffer(queue.get(), r, CL_TRUE, 0, size * sizeof(double), res.data(), 0, NULL, NULL);
-	
-	queue.flush();
-
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to read buffer!");
 	}
 
+	queue.flush();
+
 	std::copy(res.begin(), res.end(), colony.vec.begin());
 	colony.fitness = calc_fitness(colony.vec);
-
-	/*clReleaseMemObject(v1);
-	clReleaseMemObject(v2);
-	clReleaseMemObject(u);
-	clReleaseMemObject(r);*/
 }
 
 std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& vec1, std::vector<double>& vec2)

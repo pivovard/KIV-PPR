@@ -1,5 +1,6 @@
 ﻿#include "..\solver_opencl.h"
 #include "ICA_opencl.h"
+#include "ICA_opencl2.h"
 #include "Statistics.h"
 
 
@@ -8,7 +9,7 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 	//return S_FALSE;
 
 	try {
-		ICA_opencl ica(setup);
+		ICA_opencl2 ica(setup);
 		
 		Statistics::begin(setup, 2);
 
@@ -39,7 +40,7 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		//ica.print_population();
 
 		Statistics::end(i);
-		Statistics::print_stat();
+		//Statistics::print_stat();
 
 		if (setup.population_size == 100) {
 			ica.finalize();
