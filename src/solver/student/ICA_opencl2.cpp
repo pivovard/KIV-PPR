@@ -18,16 +18,17 @@ void ICA_opencl2::init()
 {
 	cl_int err = 0;
 	cl_platform_id platform_id;
+	cl_uint platforms_num;
 	cl_device_id device_id;
 
 	//get platforms
-	err = clGetPlatformIDs(0, &platform_id, NULL);
+	err = clGetPlatformIDs(1, &platform_id, &platforms_num);
 	if (err != CL_SUCCESS) {
-		//throw std::exception("ERROR: No suitable platform!");
+		throw std::exception("ERROR: No suitable platform!");
 	}
 
 	//get device
-	err = clGetDeviceIDs(NULL, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
+	err = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
 	if (err != CL_SUCCESS)
 	{
 		throw std::exception("ERROR: No suitable device!");
@@ -37,30 +38,21 @@ void ICA_opencl2::init()
 	//cl_context_properties cprops[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platformList[0])(), 0 };
 	//get context
 	context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
-	if (!context)
+	if (!context || err != CL_SUCCESS)
 	{
-		throw std::exception("ERROR: Get context failed!");
-	}
-	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Get context failed!");
 	}
 
 	queue = clCreateCommandQueue(context, device_id, 0, &err);
-	if (!queue)
+	if (!queue || err != CL_SUCCESS)
 	{
-		throw std::exception("ERROR: Create queue failed!");
-	}
-	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Create queue failed!");
 	}
 
 	const char* p = prog.c_str();
 	program = clCreateProgramWithSource(context, 1, (const char**)&p, NULL, &err);
-	if (!program)
+	if (!program || err != CL_SUCCESS)
 	{
-		throw std::exception("ERROR: Failed to load program!");
-	}
-	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to load program!");
 	}
 
@@ -98,11 +90,8 @@ void ICA_opencl2::finalize()
 	if (err != CL_SUCCESS)
 	{
 		std::cout <<  err << std::endl;
-		system("pause");
 		throw std::exception("ERROR: Failed to release object!");
 	}
-
-	//system("pause");
 }
 
 void ICA_opencl2::move_colony(Country& imp, Country& colony)
