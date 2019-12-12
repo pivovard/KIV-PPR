@@ -19,7 +19,7 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		int i = 0;
 		size_t n = 50;
 		double eps = 0.000000001;
-		for (i; i < 5; ++i) {
+		for (i; i < setup.max_generations; ++i) {
 			if (progress.cancelled) return S_FALSE;
 			
 			ica.evolve();
@@ -43,11 +43,16 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		//Statistics::print_stat();
 
 		if (setup.population_size == 100) {
-			ica.finalize();
-
 			Statistics::export_stat();
 			Statistics::clear();
+
+			ica.problemN++;
+			if (ica.problemN == 8) {
+				ica.finalize();
+			}
 		}
+
+
 	}
 	catch (std::exception & ex) {
 		std::cout << ex.what() << std::endl;
