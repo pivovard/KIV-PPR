@@ -27,6 +27,7 @@ void ICA_opencl2::init()
 		throw std::exception("ERROR: No suitable platform!");
 	}
 
+	
 	//get device
 	err = clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL);
 	if (err != CL_SUCCESS)
@@ -35,9 +36,9 @@ void ICA_opencl2::init()
 	}
 
 
-	//cl_context_properties cprops[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platformList[0])(), 0 };
+	cl_context_properties cprops[3] = { CL_CONTEXT_PLATFORM, (cl_context_properties)(platform_id), 0 };
 	//get context
-	context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
+	context = clCreateContext(cprops, 1, &device_id, NULL, NULL, &err);
 	if (!context || err != CL_SUCCESS)
 	{
 		throw std::exception("ERROR: Get context failed!");

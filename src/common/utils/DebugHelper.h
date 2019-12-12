@@ -50,10 +50,8 @@
 
 	#if defined(_MSC_VER) && defined(_DEBUG)
 		#ifdef prefer_vld
-			#include <vld.h>
-			//#include "../../../Third Party/Visual Leak Detector/include/vld.h"
-			//#include "c:/Program Files (x86)/Visual Leak Detector/include/vld.h"
-			//#include "../../../../../../Program Files (x86)/Visual Leak Detector/include/vld.h"
+			//#include <vld.h>
+			#include "../../../Third Party/Visual Leak Detector/include/vld.h"
 		#else
 
 			//The Thread Building Blocks has to include prior redefining new

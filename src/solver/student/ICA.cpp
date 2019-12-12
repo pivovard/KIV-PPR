@@ -87,8 +87,8 @@ void ICA::migrate_colonies()
 		//copy tmp to imp without imperialist i
 		_int64 d = std::distance(imp.begin(), imp_max);
 		imp = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
-		std::copy(tmp.begin(), tmp.begin() + d, imp.begin());
-		std::copy(tmp.begin() + d + 1, tmp.end(), imp.begin() + d);
+		std::move(tmp.begin(), tmp.begin() + d, imp.begin());
+		std::move(tmp.begin() + d + 1, tmp.end(), imp.begin() + d);
 		
 		return;
 	}
@@ -104,8 +104,8 @@ void ICA::migrate_colonies()
 	//copy tmp to imp without imperialist i
 	_int64 d = std::distance(imp_max->colonies.begin(), col_max);
 	imp_max->colonies = tbb::concurrent_vector<Country*>(tmp.size() - 1);
-	std::copy(tmp.begin(), tmp.begin() + d, imp_max->colonies.begin());
-	std::copy(tmp.begin() + d + 1, tmp.end(), imp_max->colonies.begin() + d);
+	std::move(tmp.begin(), tmp.begin() + d, imp_max->colonies.begin());
+	std::move(tmp.begin() + d + 1, tmp.end(), imp_max->colonies.begin() + d);
 }
 
 void ICA::migrate_colonies_old()
@@ -167,8 +167,8 @@ void ICA::do_migration(const std::vector<double>& P, const std::vector<std::vect
 
 		//copy tmp to imp without imperialist i
 		imp[vec[2]].colonies = tbb::concurrent_vector<Country*>(tmp.size() - 1);
-		std::copy(tmp.begin(), tmp.begin() + vec[0], imp[vec[2]].colonies.begin());
-		std::copy(tmp.begin() + vec[0] + 1, tmp.end(), imp[vec[2]].colonies.begin() + vec[0]);
+		std::move(tmp.begin(), tmp.begin() + vec[0], imp[vec[2]].colonies.begin());
+		std::move(tmp.begin() + vec[0] + 1, tmp.end(), imp[vec[2]].colonies.begin() + vec[0]);
 	}
 
 	//imperialist losts power - must be serial
@@ -190,8 +190,8 @@ void ICA::do_migration(const std::vector<double>& P, const std::vector<std::vect
 
 				//copy tmp to imp without imperialist i
 				imp = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
-				std::copy(tmp.begin(), tmp.begin() + i, imp.begin());
-				std::copy(tmp.begin() + i + 1, tmp.end(), imp.begin() + i);
+				std::move(tmp.begin(), tmp.begin() + i, imp.begin());
+				std::move(tmp.begin() + i + 1, tmp.end(), imp.begin() + i);
 
 				--i; //size reduced by 1
 			}
@@ -210,8 +210,8 @@ void ICA::do_migration(std::vector<double>& P, const tbb::concurrent_vector<std:
 
 		//copy tmp to imp without imperialist i
 		imp[vec[2]].colonies = tbb::concurrent_vector<Country*>(tmp.size() - 1);
-		std::copy(tmp.begin(), tmp.begin() + vec[0], imp[vec[2]].colonies.begin());
-		std::copy(tmp.begin() + vec[0] + 1, tmp.end(), imp[vec[2]].colonies.begin() + vec[0]);
+		std::move(tmp.begin(), tmp.begin() + vec[0], imp[vec[2]].colonies.begin());
+		std::move(tmp.begin() + vec[0] + 1, tmp.end(), imp[vec[2]].colonies.begin() + vec[0]);
 	}
 
 	//imperialist losts power - must be serial
@@ -238,8 +238,8 @@ void ICA::do_migration(std::vector<double>& P, const tbb::concurrent_vector<std:
 
 				//copy tmp to imp without imperialist i
 				imp = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
-				std::copy(tmp.begin(), tmp.begin() + i, imp.begin());
-				std::copy(tmp.begin() + i + 1, tmp.end(), imp.begin() + i);
+				std::move(tmp.begin(), tmp.begin() + i, imp.begin());
+				std::move(tmp.begin() + i + 1, tmp.end(), imp.begin() + i);
 			}
 		}
 	}
