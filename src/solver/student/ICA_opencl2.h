@@ -3,6 +3,7 @@
 #include "ICA_smp.h"
 #include "kernel.h"
 
+#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #include <CL/cl.h>
 
 class ICA_opencl2 : public ICA_smp {
@@ -34,4 +35,5 @@ public:
 
 	//cleanup OpenCL
 	void finalize();
+	static size_t problemN;
 };

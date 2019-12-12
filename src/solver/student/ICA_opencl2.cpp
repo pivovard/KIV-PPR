@@ -5,6 +5,7 @@ cl_context ICA_opencl2::context;
 cl_program ICA_opencl2::program;
 cl_command_queue ICA_opencl2::queue;
 cl_kernel ICA_opencl2::kernel;
+size_t ICA_opencl2::problemN = 0;
 
 ICA_opencl2::ICA_opencl2(const solver::TSolver_Setup& setup) : ICA_smp(setup) {
 	//init opencl
@@ -131,6 +132,11 @@ void ICA_opencl2::move_colony(Country& imp, Country& colony)
 	err |= clEnqueueWriteBuffer(queue, u, CL_TRUE, 0, size * sizeof(double), U.data(), 0, NULL, NULL);
 	if (err != CL_SUCCESS)
 	{
+		clFinish(queue);
+		clReleaseMemObject(v1);
+		clReleaseMemObject(v2);
+		clReleaseMemObject(u);
+		clReleaseMemObject(r);
 		throw std::exception("ERROR: Failed to write to the buffer!");
 	}
 
@@ -140,11 +146,21 @@ void ICA_opencl2::move_colony(Country& imp, Country& colony)
 	err |= clSetKernelArg(kernel, 3, sizeof(cl_mem), &r);
 
 	if (err != CL_SUCCESS) {
+		clFinish(queue);
+		clReleaseMemObject(v1);
+		clReleaseMemObject(v2);
+		clReleaseMemObject(u);
+		clReleaseMemObject(r);
 		throw std::exception("ERROR: Failed to set arguments!");
 	}
 
 	err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global_ws, &local_ws, 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
+		clFinish(queue);
+		clReleaseMemObject(v1);
+		clReleaseMemObject(v2);
+		clReleaseMemObject(u);
+		clReleaseMemObject(r);
 		throw std::exception("ERROR: Failed to enqueue task!");
 	}
 
@@ -152,10 +168,15 @@ void ICA_opencl2::move_colony(Country& imp, Country& colony)
 
 	err = clEnqueueReadBuffer(queue, r, CL_TRUE, 0, size * sizeof(double), res.data(), 0, NULL, NULL);
 	if (err != CL_SUCCESS) {
+		clFinish(queue);
+		clReleaseMemObject(v1);
+		clReleaseMemObject(v2);
+		clReleaseMemObject(u);
+		clReleaseMemObject(r);
 		throw std::exception("ERROR: Failed to read buffer!");
 	}
 
-	std::copy(res.begin(), res.end(), colony.vec.begin());
+	std::move(res.begin(), res.end(), colony.vec.begin());
 	colony.fitness = calc_fitness(colony.vec);
 
 	clReleaseMemObject(v1);
