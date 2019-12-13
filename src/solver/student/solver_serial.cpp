@@ -2,7 +2,6 @@
 #include "ICA.h"
 #include "Statistics.h"
 #include<numeric>
-#include<vld.h>
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 

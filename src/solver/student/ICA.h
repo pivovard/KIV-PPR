@@ -9,8 +9,6 @@
 #include "../../common/iface/SolverIface.h"
 #include "Country.h"
 
-#include<vld.h>
-
 
 class ICA
 {
