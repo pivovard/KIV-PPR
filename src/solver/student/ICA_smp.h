@@ -21,26 +21,26 @@ private:
 
 protected:
 	//parallel - move of all colonies of imperialist
-	virtual void move_all_colonies(Imperialist& imp) override;
+	virtual void move_all_colonies(Imperialist& imp) override final;
 	//OLD parallel - random migration of colonies based on probability
-	virtual void migrate_colonies_old() override;
+	virtual void migrate_colonies_old() override final;
 
 	//parallel - calc fitness of all colonies
-	virtual void calc_fitness_all() override;
+	virtual void calc_fitness_all() override final;
 	//calc fitness of imperialist - imp cost = imp_cost = imp_cost + 1/col_size * mean(cost_of_colonies) - parallel sum
-	virtual double calc_fitness_imp(const Imperialist& imp) override;
+	virtual double calc_fitness_imp(const Imperialist& imp) override final;
 
 public:
 	ICA_smp(const solver::TSolver_Setup& setup);
 	~ICA_smp() = default;
 
 	//parallel - generates new population
-	virtual void gen_population() override;
+	virtual void gen_population() override final;
 	//algorithm iteration - parallel move colonies
-	virtual void evolve() override;
+	virtual void evolve() override final;
 	
 	//parallel_reduce for colony with min fitness function
-	virtual double get_min() override;
+	virtual double get_min() override final;
 	//parallel_reduce for colony with max fitness function
-	virtual double get_max() override;
+	virtual double get_max() override final;
 };

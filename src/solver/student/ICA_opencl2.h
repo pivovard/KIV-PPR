@@ -27,7 +27,7 @@ private:
 
 protected:
 	//move colony towards to imperialist - calc on GPU
-	virtual void move_colony(Country& imp, Country& colony) override;
+	virtual void move_colony(Country& imp, Country& colony) override final;
 
 public:
 	ICA_opencl2(const solver::TSolver_Setup& setup);

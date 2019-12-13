@@ -33,9 +33,9 @@ private:
 
 protected:
 	//calc fitness of colony
-	virtual double calc_fitness(const std::vector<double>& vec) override;
+	virtual double calc_fitness(const std::vector<double>& vec) override final;
 	//move colony towards to imperialist - calc on GPU
-	virtual void move_colony(Country& imp, Country& colony) override;
+	virtual void move_colony(Country& imp, Country& colony) override final;
 
 public:
 	ICA_opencl(const solver::TSolver_Setup& setup);
@@ -45,10 +45,10 @@ public:
 	void finalize();
 
 	//add 2 vectors
-	virtual std::vector<double> vector_add(std::vector<double>& vec1, std::vector<double>& vec2) override;
+	virtual std::vector<double> vector_add(std::vector<double>& vec1, std::vector<double>& vec2) override final;
 	//sub 2 vectors
-	virtual std::vector<double> vector_sub(std::vector<double>& vec1, std::vector<double>& vec2) override;
+	virtual std::vector<double> vector_sub(std::vector<double>& vec1, std::vector<double>& vec2) override final;
 	//multiplies 2 vectors
-	virtual std::vector<double> vector_mul(std::vector<double>& vec1, std::vector<double>& vec2) override;
+	virtual std::vector<double> vector_mul(std::vector<double>& vec1, std::vector<double>& vec2) override final;
 
 };
