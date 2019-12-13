@@ -11,7 +11,7 @@ struct Country
 
 struct Imperialist
 {
-	Country* imp = nullptr;
-	tbb::concurrent_vector<Country*> colonies;
+	Country imp;
+	tbb::concurrent_vector<Country> colonies;
 	double total_fitness = std::numeric_limits<double>::quiet_NaN();
 };

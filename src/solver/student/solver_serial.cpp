@@ -2,6 +2,7 @@
 #include "ICA.h"
 #include "Statistics.h"
 #include<numeric>
+#include<vld.h>
 
 HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &progress) {
 
@@ -16,7 +17,7 @@ HRESULT solve_serial(solver::TSolver_Setup &setup, solver::TSolver_Progress &pro
 	int i = 0;
 	size_t n = 100;
 	double eps = 0.000000001;
-	for (i; i < setup.max_generations; ++i) {
+	for (i; i < 5; ++i) {
 		if (progress.cancelled) return S_FALSE;
 
 		ica.evolve();

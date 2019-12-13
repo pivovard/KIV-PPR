@@ -17,7 +17,7 @@ HRESULT solve_smp(solver::TSolver_Setup &setup, solver::TSolver_Progress &progre
 	int i = 0;
 	size_t n = 100;
 	double eps = 0.000000001;
-	for (i; i < setup.max_generations; ++i) {
+	for (i; i < 5; ++i) {
 		if (progress.cancelled) return S_FALSE;
 
 		ica.evolve();

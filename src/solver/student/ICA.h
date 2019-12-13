@@ -9,6 +9,7 @@
 #include "../../common/iface/SolverIface.h"
 #include "Country.h"
 
+#include<vld.h>
 
 
 class ICA
@@ -18,10 +19,7 @@ private:
 protected:
 	const solver::TSolver_Setup& setup;
 
-	//all colonies
-	tbb::concurrent_vector<Country> pop;
-
-	tbb::concurrent_vector<Imperialist> imp;
+	tbb::concurrent_vector<Imperialist> pop;
 
 	const double beta = 2.0;
 	const double gama = std::_Pi / 4.0;

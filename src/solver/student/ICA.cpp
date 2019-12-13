@@ -18,11 +18,11 @@ ICA::ICA(const solver::TSolver_Setup& setup) : setup(setup)
 void ICA::evolve()
 {
 	//move colonies
-	for (auto& i : imp) {
+	for (auto& i : pop) {
 		move_all_colonies(i);
 	}
 
-	if (imp.size() > 1) {
+	if (pop.size() > 1) {
 		//migrate colonies
 		migrate_colonies();
 	}
@@ -31,15 +31,15 @@ void ICA::evolve()
 void ICA::move_all_colonies(Imperialist& imp)
 {
 	for (int i = 0; i < imp.colonies.size(); ++i) {
-		move_colony(*imp.imp, *imp.colonies[i]);
+		move_colony(imp.imp, imp.colonies[i]);
 
 		//if colonies cost function < than imperialists, switch
-		if (imp.colonies[i]->fitness < imp.imp->fitness) {
-			auto* tmp = imp.colonies[i];
+		if (imp.colonies[i].fitness < imp.imp.fitness) {
+			auto tmp = imp.colonies[i];
 			imp.colonies[i] = imp.imp;
-			imp.colonies[i]->imperialist = false;
+			imp.colonies[i].imperialist = false;
 			imp.imp = tmp;
-			imp.imp->imperialist = true;
+			imp.imp.imperialist = true;
 		}
 	}
 }
@@ -69,43 +69,44 @@ void ICA::move_colony(Country& imp, Country& colony)
 void ICA::migrate_colonies()
 {
 	//count total fitness
-	for (auto& i : imp) {
+	for (auto& i : pop) {
 		double tc = calc_fitness_imp(i);
 		i.total_fitness = tc;
 	}
 
-	const auto& imp_max = std::max_element(imp.begin(), imp.end(), [](Imperialist& a, Imperialist& b) { return a.total_fitness < b.total_fitness; }); //worst
-	const auto& imp_min = std::min_element(imp.begin(), imp.end(), [](Imperialist& a, Imperialist& b) { return a.total_fitness < b.total_fitness; }); //best
+	const auto& imp_max = std::max_element(pop.begin(), pop.end(), [](Imperialist& a, Imperialist& b) { return a.total_fitness < b.total_fitness; }); //worst
+	const auto& imp_min = std::min_element(pop.begin(), pop.end(), [](Imperialist& a, Imperialist& b) { return a.total_fitness < b.total_fitness; }); //best
 
 	//imperium extinction
 	if (imp_max->colonies.size() < 1) {
 		imp_min->colonies.push_back(imp_max->imp);
 
 		//copy imp to tmp
-		tbb::concurrent_vector<Imperialist> tmp(imp);
+		tbb::concurrent_vector<Imperialist> tmp(pop);
 
 		//copy tmp to imp without imperialist i
-		_int64 d = std::distance(imp.begin(), imp_max);
-		imp = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
-		std::move(tmp.begin(), tmp.begin() + d, imp.begin());
-		std::move(tmp.begin() + d + 1, tmp.end(), imp.begin() + d);
+		_int64 d = std::distance(pop.begin(), imp_max);
+		pop = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
+		std::move(tmp.begin(), tmp.begin() + d, pop.begin());
+		std::move(tmp.begin() + d + 1, tmp.end(), pop.begin() + d);
 		
 		return;
 	}
 
-	const auto& col_max = std::max_element(imp_max->colonies.begin(), imp_max->colonies.end(), [](Country* a, Country* b) { return a->fitness < b->fitness; }); //worst colony
+	const auto& col_max = std::max_element(imp_max->colonies.begin(), imp_max->colonies.end(), [](Country a, Country b) { return a.fitness < b.fitness; }); //worst colony
 
 	//add worst colony to the best imp
 	imp_min->colonies.push_back(*col_max);
 
 	//copy colonies to tmp
-	tbb::concurrent_vector<Country*> tmp(imp_max->colonies);
+	tbb::concurrent_vector<Country> tmp(imp_max->colonies);
 
 	//copy tmp to imp without imperialist i
 	_int64 d = std::distance(imp_max->colonies.begin(), col_max);
-	imp_max->colonies = tbb::concurrent_vector<Country*>(tmp.size() - 1);
+	imp_max->colonies = tbb::concurrent_vector<Country>(tmp.size() - 1);
 	std::move(tmp.begin(), tmp.begin() + d, imp_max->colonies.begin());
 	std::move(tmp.begin() + d + 1, tmp.end(), imp_max->colonies.begin() + d);
+	
 }
 
 void ICA::migrate_colonies_old()
@@ -115,7 +116,7 @@ void ICA::migrate_colonies_old()
 	double sum_tc = 0.0;
 
 	//count total fitness
-	for (auto& i : imp) {
+	for (auto& i : pop) {
 		double tc = calc_fitness_imp(i);
 		i.total_fitness = tc;
 		sum_tc += tc;
@@ -123,20 +124,20 @@ void ICA::migrate_colonies_old()
 	}
 
 	//count probability vector p=|NTC/sum NTC |
-	size_t n_imp = imp.size();
+	size_t n_imp = pop.size();
 	std::vector<double> P(n_imp);
 
 	for (int i = 0; i < n_imp; ++i) {
 		//double p = std::abs((i.total_fitness - max_tc) / sum_tc); //normalized
-		double p = std::abs(imp[i].total_fitness / sum_tc); // not normalized
+		double p = std::abs(pop[i].total_fitness / sum_tc); // not normalized
 		P[i] = p;
 	}
 	
 	//{colony, imp in, imp out}
 	//{  j,      max,     i   }
 	std::vector<std::vector<_int64>> migration;
-	for (int i = 0; i < imp.size(); ++i) {
-		for (int j = imp[i].colonies.size() - 1; j > -1; --j) {
+	for (int i = 0; i < pop.size(); ++i) {
+		for (int j = pop[i].colonies.size() - 1; j > -1; --j) {
 			std::vector<double> R;
 			R = gen_vector(P.size(), 0, 1);
 
@@ -160,38 +161,38 @@ void ICA::do_migration(const std::vector<double>& P, const std::vector<std::vect
 {
 	//migration
 	for (auto& vec : migration) {
-		imp[vec[1]].colonies.push_back(imp[vec[2]].colonies[vec[0]]);
+		pop[vec[1]].colonies.push_back(pop[vec[2]].colonies[vec[0]]);
 
 		//copy colonies to tmp
-		tbb::concurrent_vector<Country*> tmp(imp[vec[2]].colonies);
+		tbb::concurrent_vector<Country> tmp(pop[vec[2]].colonies);
 
 		//copy tmp to imp without imperialist i
-		imp[vec[2]].colonies = tbb::concurrent_vector<Country*>(tmp.size() - 1);
-		std::move(tmp.begin(), tmp.begin() + vec[0], imp[vec[2]].colonies.begin());
-		std::move(tmp.begin() + vec[0] + 1, tmp.end(), imp[vec[2]].colonies.begin() + vec[0]);
+		pop[vec[2]].colonies = tbb::concurrent_vector<Country>(tmp.size() - 1);
+		std::move(tmp.begin(), tmp.begin() + vec[0], pop[vec[2]].colonies.begin());
+		std::move(tmp.begin() + vec[0] + 1, tmp.end(), pop[vec[2]].colonies.begin() + vec[0]);
 	}
 
 	//imperialist losts power - must be serial
-	for (int i = imp.size() - 1; i > -1; --i) {
+	for (int i = pop.size() - 1; i > -1; --i) {
 		//if no colonies
-		if (imp[i].colonies.size() == 0) {
-			auto it = std::min_element(imp.begin(), imp.end(), [](Imperialist a, Imperialist b) { return a.total_fitness < b.total_fitness; });
-			_int64 max = std::distance(imp.begin(), it);
+		if (pop[i].colonies.size() == 0) {
+			auto it = std::min_element(pop.begin(), pop.end(), [](Imperialist a, Imperialist b) { return a.total_fitness < b.total_fitness; });
+			_int64 max = std::distance(pop.begin(), it);
 
 			//extinction
 			if (max != i) {
-				imp[i].imp->imperialist = false;
-				imp[max].colonies.push_back(imp[i].imp);
+				pop[i].imp.imperialist = false;
+				pop[max].colonies.push_back(pop[i].imp);
 				//imp.erase(imp.begin() + i);
 
 				//copy imp to tmp
-				tbb::concurrent_vector<Imperialist> tmp(imp);
-				//std::copy(imp.begin(), imp.end(), tmp.begin());
+				tbb::concurrent_vector<Imperialist> tmp(pop);
+				//std::copy(pop.begin(), pop.end(), tmp.begin());
 
 				//copy tmp to imp without imperialist i
-				imp = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
-				std::move(tmp.begin(), tmp.begin() + i, imp.begin());
-				std::move(tmp.begin() + i + 1, tmp.end(), imp.begin() + i);
+				pop = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
+				std::move(tmp.begin(), tmp.begin() + i, pop.begin());
+				std::move(tmp.begin() + i + 1, tmp.end(), pop.begin() + i);
 
 				--i; //size reduced by 1
 			}
@@ -203,21 +204,21 @@ void ICA::do_migration(std::vector<double>& P, const tbb::concurrent_vector<std:
 {
 	//migration
 	for (auto& vec : migration) {
-		imp[vec[1]].colonies.push_back(imp[vec[2]].colonies[vec[0]]);
+		pop[vec[1]].colonies.push_back(pop[vec[2]].colonies[vec[0]]);
 
 		//copy colonies to tmp
-		tbb::concurrent_vector<Country*> tmp(imp[vec[2]].colonies);
+		tbb::concurrent_vector<Country> tmp(pop[vec[2]].colonies);
 
 		//copy tmp to imp without imperialist i
-		imp[vec[2]].colonies = tbb::concurrent_vector<Country*>(tmp.size() - 1);
-		std::move(tmp.begin(), tmp.begin() + vec[0], imp[vec[2]].colonies.begin());
-		std::move(tmp.begin() + vec[0] + 1, tmp.end(), imp[vec[2]].colonies.begin() + vec[0]);
+		pop[vec[2]].colonies = tbb::concurrent_vector<Country>(tmp.size() - 1);
+		std::move(tmp.begin(), tmp.begin() + vec[0], pop[vec[2]].colonies.begin());
+		std::move(tmp.begin() + vec[0] + 1, tmp.end(), pop[vec[2]].colonies.begin() + vec[0]);
 	}
 
 	//imperialist losts power - must be serial
-	for (int i = 0; i < imp.size(); ++i) {
+	for (int i = 0; i < pop.size(); ++i) {
 		//if no colonies
-		if (imp[i].colonies.size() == 0) {
+		if (pop[i].colonies.size() == 0) {
 			std::vector<double> R;
 			R = gen_vector(P.size(), 0, 1);
 
@@ -229,17 +230,17 @@ void ICA::do_migration(std::vector<double>& P, const tbb::concurrent_vector<std:
 
 			//extinction
 			if (max != i) {
-				imp[i].imp->imperialist = false;
-				imp[max].colonies.push_back(imp[i].imp);
-				//imp.erase(imp.begin() + i);
+				pop[i].imp.imperialist = false;
+				pop[max].colonies.push_back(pop[i].imp);
+				//pop.erase(imp.begin() + i);
 
 				//copy imp to tmp
-				tbb::concurrent_vector<Imperialist> tmp(imp);
+				tbb::concurrent_vector<Imperialist> tmp(pop);
 
 				//copy tmp to imp without imperialist i
-				imp = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
-				std::move(tmp.begin(), tmp.begin() + i, imp.begin());
-				std::move(tmp.begin() + i + 1, tmp.end(), imp.begin() + i);
+				pop = tbb::concurrent_vector<Imperialist>(tmp.size() - 1);
+				std::move(tmp.begin(), tmp.begin() + i, pop.begin());
+				std::move(tmp.begin() + i + 1, tmp.end(), pop.begin() + i);
 			}
 		}
 	}
@@ -266,20 +267,20 @@ std::vector<double> ICA::vector_mul(std::vector<double>& vec1, std::vector<doubl
 
 double ICA::get_min()
 {
-	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
-	return it->fitness;
+	const auto& it = std::min_element(pop.begin(), pop.end(), [](Imperialist& a, Imperialist& b) { return a.imp.fitness < b.imp.fitness; });
+	return it->imp.fitness;
 }
 
 double ICA::get_max()
 {
-	const auto& it = std::max_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
-	return it->fitness;
+	const auto& it = std::max_element(pop.begin(), pop.end(), [](Imperialist& a, Imperialist& b) { return a.imp.fitness < b.imp.fitness; });
+	return it->imp.fitness;
 }
 
 void ICA::write_solution()
 {
-	const auto& it = std::min_element(pop.begin(), pop.end(), [](Country& a, Country& b) { return a.fitness < b.fitness; });
-	std::copy(it->vec.begin(), it->vec.end(), setup.solution);
+	const auto& it = std::min_element(pop.begin(), pop.end(), [](Imperialist& a, Imperialist& b) { return a.imp.fitness < b.imp.fitness; });
+	std::copy(it->imp.vec.begin(), it->imp.vec.end(), setup.solution);
 }
 
 double ICA::gen_double(double lower_bound, double upper_bound)
@@ -304,16 +305,20 @@ std::vector<double> ICA::gen_vector(size_t size, double lower_bound, double uppe
 
 void ICA::gen_population()
 {
+	tbb::concurrent_vector<Country> pop_s;
+
 	//generate start population
 	for (int i = 0; i < setup.population_size; ++i) {
 		Country c;
 		c.vec = gen_vector(setup.problem_size, *setup.lower_bound, *setup.upper_bound);
-		pop.push_back(c);
+		pop_s.emplace_back(c);
 	}
 
 	//calc fitness functions and sort
-	calc_fitness_all();
-	std::sort(pop.begin(), pop.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
+	for (auto& country : pop_s) {
+		country.fitness = calc_fitness(country.vec);
+	}
+	std::sort(pop_s.begin(), pop_s.end(), [](Country a, Country b) { return a.fitness < b.fitness; });
 
 	//define imperialists
 	size_t n_imp = start_imp;
@@ -322,23 +327,22 @@ void ICA::gen_population()
 	}
 
 	double sum_C = 0; //sum of normalized fitnesses of imperialists
-	double max_c = pop[setup.population_size - 1].fitness; //max of all countries OR maybe max of imperialists?
-
-	for (int i = 0; i < n_imp; ++i) {
-		Imperialist tmp;
-		tmp.imp = &pop[i];
-		imp.push_back(tmp);
-		pop[i].imperialist = true;
-		sum_C += pop[i].fitness - max_c;
-	}
-
+	double max_c = pop_s[setup.population_size - 1].fitness; //max of all countries OR maybe max of imperialists?
 	std::vector<double> prob(n_imp); //probability to get colony
 
 	for (int i = 0; i < n_imp; ++i) {
-		double p_n = std::abs((pop[i].fitness - max_c) / sum_C); //p=|norm.fitness/sum Cn|
+		pop_s[i].imperialist = true;
+		sum_C += pop_s[i].fitness - max_c;
+
+		double p_n = std::abs((pop_s[i].fitness - max_c) / sum_C); //p=|norm.fitness/sum Cn|
 		prob[i] = p_n;
 		//std::cout << "Imp " << i + 1 << " colonies " << std::round(p_n * (setup.population_size - n_imp)) << std::endl;
+
+		Imperialist tmp;
+		tmp.imp = std::move(pop_s[i]);
+		pop.emplace_back(tmp);
 	}
+	
 
 	//assign colonies - not match number of colonies by the formula
 	std::uniform_real_distribution<> dist; //distrinution (0,1)
@@ -350,11 +354,12 @@ void ICA::gen_population()
 		for (int j = 0; j < n_imp; ++j) {
 			tmp += prob[j];
 			if (roll <= tmp) {
-				imp[j].colonies.push_back(&pop[i]);
+				pop[j].colonies.emplace_back(pop_s[i]);
 				break;
 			}
 		}
 	}
+	//pop_s.~concurrent_vector();
 }
 
 double ICA::calc_fitness(const std::vector<double>& vec)
@@ -365,23 +370,23 @@ double ICA::calc_fitness(const std::vector<double>& vec)
 
 void ICA::calc_fitness_all()
 {
-	for (auto& country : pop) {
+	/*for (auto& country : pop) {
 		country.fitness = calc_fitness(country.vec);
-	}
+	}*/
 }
 
 double ICA::calc_fitness_imp(const Imperialist& imp)
 {
 	//without colonies increase cost
-	if (imp.colonies.size() == 0) return 2*imp.imp->fitness;
+	if (imp.colonies.size() == 0) return 2*imp.imp.fitness;
 
 	double sum = 0;
 	for (int i = 0; i < imp.colonies.size(); ++i) {
-		sum += imp.colonies[i]->fitness;
+		sum += imp.colonies[i].fitness;
 	}
 
 	//total imp cost = imp cost + 1/col_size * mean(cost of colonies)
-	return imp.imp->fitness + sum / (2*imp.colonies.size());
+	return imp.imp.fitness + sum / (2*imp.colonies.size());
 }
 
 double ICA::calc_distance(const std::vector<double>& vec1, const std::vector<double>& vec2)
@@ -397,17 +402,17 @@ double ICA::calc_distance(const std::vector<double>& vec1, const std::vector<dou
 
 void ICA::print_population()
 {
-	for (const auto& i : imp) {
+	for (const auto& i : pop) {
 		std::cout << "Imp: ";
-		std::cout << i.imp->fitness << " - ";
-		print_vector(i.imp->vec);
+		std::cout << i.imp.fitness << " - ";
+		print_vector(i.imp.vec);
 		std::cout << "colonies = " << i.colonies.size();
 		std::cout << std::endl;
 
 		for (const auto& col : i.colonies) {
 			std::cout << "\tCol: ";
-			std::cout << col->fitness << " - ";
-			print_vector(col->vec);
+			std::cout << col.fitness << " - ";
+			print_vector(col.vec);
 		}
 	}
 
