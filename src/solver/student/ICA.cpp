@@ -359,7 +359,6 @@ void ICA::gen_population()
 			}
 		}
 	}
-	//pop_s.~concurrent_vector();
 }
 
 double ICA::calc_fitness(const std::vector<double>& vec)

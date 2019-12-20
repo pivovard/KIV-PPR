@@ -12,13 +12,18 @@ class ICA_opencl : public ICA_smp {
 private:
 	//init flag
 	static bool _INIT;
-	static short _INIT_N;
 
-	static cl::Platform platform;
-	static cl::Context context;
-	static cl::Device device;
-	static cl::Program program;
-	static cl::CommandQueue queue;
+	static std::unique_ptr<std::vector<cl::Platform>> platform;
+	static std::unique_ptr<cl::Context> context;
+	static std::unique_ptr<std::vector<cl::Device>> device;
+	static std::unique_ptr<cl::Program> program;
+	static std::unique_ptr<cl::CommandQueue> queue;
+	static std::unique_ptr<cl::Kernel> kernel;
+
+	static std::unique_ptr<cl::Buffer> v1;
+	static std::unique_ptr<cl::Buffer> v2;
+	static std::unique_ptr<cl::Buffer> u;
+	static std::unique_ptr<cl::Buffer> r;
 
 	//limit to run vector calc on GPU
 	size_t cl_size = 0;
@@ -42,7 +47,9 @@ public:
 	~ICA_opencl() = default;
 
 	//cleanup OpenCL
-	void finalize();
+	void releaseBuffers();
+	void releaseAll();
+	static size_t problemN;
 
 	//add 2 vectors
 	virtual std::vector<double> vector_add(std::vector<double>& vec1, std::vector<double>& vec2) override final;

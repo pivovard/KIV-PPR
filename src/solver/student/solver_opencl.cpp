@@ -9,7 +9,7 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 	//return S_FALSE;
 
 	try {
-		ICA_opencl2 ica(setup);
+		ICA_opencl ica(setup);
 		
 		Statistics::begin(setup, 2);
 
@@ -42,17 +42,18 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		Statistics::end(i);
 		//Statistics::print_stat();
 
+		//ica.releaseBuffers(); //results in error
+
 		if (setup.population_size == 100) {
 			Statistics::export_stat();
 			Statistics::clear();
 
+			//ica.releaseAll();
 			ica.problemN++;
 			if (ica.problemN == 8) {
-				ica.finalize();
+				ica.releaseAll();
 			}
 		}
-
-
 	}
 	catch (std::exception & ex) {
 		std::cout << ex.what() << std::endl;
