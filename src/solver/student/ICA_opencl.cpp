@@ -136,39 +136,13 @@ void ICA_opencl::releaseAll()
 	}
 }
 
-
-
-std::vector<double> ICA_opencl::vector_add(std::vector<double>& vec1, std::vector<double>& vec2)
-{
-	if (setup.problem_size < cl_size) return ICA::vector_add(vec1, vec2);
-	else return vector_op("vector_add", vec1, vec2);
+void ICA_opencl::evolve() {
+	ICA::evolve();
 }
 
-std::vector<double> ICA_opencl::vector_sub(std::vector<double>& vec1, std::vector<double>& vec2)
-{
-	if (setup.problem_size < cl_size) return ICA::vector_sub(vec1, vec2);
-	else return vector_op("vector_sub", vec1, vec2);
+void ICA_opencl::move_all_colonies(Imperialist& imp) {
+	ICA::move_all_colonies(imp);
 }
-
-std::vector<double> ICA_opencl::vector_mul(std::vector<double>& vec1, std::vector<double>& vec2)
-{
-	if (setup.problem_size < cl_size) return ICA::vector_mul(vec1, vec2);
-	else return vector_op("vector_mul", vec1, vec2);
-}
-
-double ICA_opencl::calc_fitness(const std::vector<double>& vec)
-{
-	return ICA::calc_fitness(vec);
-	//for schwefel only - couldn't find where is set problem number at setup
-	const double mShift = -4.0;
-	double result = 0.0;
-	for (size_t i = 0; i < setup.problem_size; i++) {
-		const double tmp = vec[i] + mShift;
-		result -= tmp * sin(sqrt(fabs(tmp)));
-	}
-	return result;
-}
-
 
 void ICA_opencl::move_colony(Country& imp, Country& colony)
 {
@@ -207,9 +181,7 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	queue->enqueueWriteBuffer(*v2, CL_TRUE, 0, size * sizeof(double), imp.vec.data());
 	queue->enqueueWriteBuffer(*u, CL_TRUE, 0, size * sizeof(double), U.data());
 
-	if (err != CL_SUCCESS) {
-		throw std::exception("ERROR: Failed to create buffer!");
-	}
+	queue->finish();
 
 	err = kernel->setArg(0, *v1);
 	err |= kernel->setArg(1, *v2);
@@ -227,17 +199,49 @@ void ICA_opencl::move_colony(Country& imp, Country& colony)
 	}
 
 	event.wait();
-	queue->flush();
+	queue->finish();
 
 	err = queue->enqueueReadBuffer(*r, CL_TRUE, 0, size * sizeof(double), res.data());
 	if (err != CL_SUCCESS) {
 		throw std::exception("ERROR: Failed to read buffer!");
 	}
 
-	queue->flush();
+	queue->finish();
 
 	std::copy(res.begin(), res.end(), colony.vec.begin());
 	colony.fitness = calc_fitness(colony.vec);
+}
+
+double ICA_opencl::calc_fitness(const std::vector<double>& vec)
+{
+	return ICA::calc_fitness(vec);
+	//for schwefel only - couldn't find where is set problem number at setup
+	const double mShift = -4.0;
+	double result = 0.0;
+	for (size_t i = 0; i < setup.problem_size; i++) {
+		const double tmp = vec[i] + mShift;
+		result -= tmp * sin(sqrt(fabs(tmp)));
+	}
+	return result;
+}
+
+
+std::vector<double> ICA_opencl::vector_add(std::vector<double>& vec1, std::vector<double>& vec2)
+{
+	if (setup.problem_size < cl_size) return ICA::vector_add(vec1, vec2);
+	else return vector_op("vector_add", vec1, vec2);
+}
+
+std::vector<double> ICA_opencl::vector_sub(std::vector<double>& vec1, std::vector<double>& vec2)
+{
+	if (setup.problem_size < cl_size) return ICA::vector_sub(vec1, vec2);
+	else return vector_op("vector_sub", vec1, vec2);
+}
+
+std::vector<double> ICA_opencl::vector_mul(std::vector<double>& vec1, std::vector<double>& vec2)
+{
+	if (setup.problem_size < cl_size) return ICA::vector_mul(vec1, vec2);
+	else return vector_op("vector_mul", vec1, vec2);
 }
 
 std::vector<double> ICA_opencl::vector_op(std::string op, std::vector<double>& vec1, std::vector<double>& vec2)

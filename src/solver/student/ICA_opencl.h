@@ -39,12 +39,17 @@ private:
 protected:
 	//calc fitness of colony
 	virtual double calc_fitness(const std::vector<double>& vec) override final;
+	//move of all colonies of imperialist
+	virtual void move_all_colonies(Imperialist& imp) override final;
 	//move colony towards to imperialist - calc on GPU
 	virtual void move_colony(Country& imp, Country& colony) override final;
 
 public:
 	ICA_opencl(const solver::TSolver_Setup& setup);
 	~ICA_opencl() = default;
+
+	//algorithm iteration
+	virtual void evolve() override final;
 
 	//cleanup OpenCL
 	void releaseBuffers();

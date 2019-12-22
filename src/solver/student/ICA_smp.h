@@ -21,7 +21,7 @@ private:
 
 protected:
 	//parallel - move of all colonies of imperialist
-	virtual void move_all_colonies(Imperialist& imp) override final;
+	virtual void move_all_colonies(Imperialist& imp) override;
 	//OLD parallel - random migration of colonies based on probability
 	virtual void migrate_colonies_old() override final;
 
@@ -37,7 +37,7 @@ public:
 	//parallel - generates new population
 	virtual void gen_population() override final;
 	//algorithm iteration - parallel move colonies
-	virtual void evolve() override final;
+	virtual void evolve() override;
 	
 	//parallel_reduce for colony with min fitness function
 	virtual double get_min() override final;
