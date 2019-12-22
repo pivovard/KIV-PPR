@@ -3,7 +3,7 @@
 
 *.zip
 #compiled/
-#msvc/
+msvc/
 
 # User-specific files
 *.suo
