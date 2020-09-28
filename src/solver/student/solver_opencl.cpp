@@ -42,7 +42,7 @@ HRESULT solve_opencl(solver::TSolver_Setup& setup, solver::TSolver_Progress& pro
 		Statistics::end(i);
 		//Statistics::print_stat();
 
-		//ica.releaseBuffers(); //results in error
+		ica.releaseBuffers(); //results in error
 
 		if (setup.population_size == 100) {
 			Statistics::export_stat();
